@@ -1,6 +1,7 @@
 /**
  * Demo links:
  *
+ * ?runInfo=0&dryRun=1&file=%2Fmnt%2Fext4_arquivos%2Fprojects%2Fdev-tools%2Fopen-in-editor-server%2Fpackage.json%3A7%3A39&profile=my-project-2
  * ?runInfo=0&dryRun=1&file=%2Fmnt%2Fext4_arquivos%2Fprojects%2Fdev-tools%2Fopen-in-editor-server%2Fpackage.json%3A7%3A39&app_base_path_remote_map=%2Fmnt%2Fext4_arquivos%2Fprojects%2Fdev-tools%2Fopen-in-editor-server%3A%2Fmnt%2Fext4_arquivos%2Fprojects%2Fdev-tools%2Fopen-in-editor-server
  * ?file=%2Fapp%2Fapp%2Fcomponents%2Fsearch%2FVehicleFilters.vue%3A197%3A10
  * /__open-in-editor?file=%2Fapp%2Fapp%2Fcomponents%2Fsearch%2FVehicleFilters.vue%3A197%3A10
@@ -20,7 +21,7 @@ const packageJsonFile = path.resolve(process.cwd(), './package.json') || './pack
 
 const CONFIG_PATH = process.env.CONFIG_PATH || null;
 const CONFIG_BASE_DIR = process.env.CONFIG_BASE_DIR || process.cwd();
-const configFileName = 'app.config.demo.js';
+const configFileName = 'app.config.js';
 const configPath = CONFIG_PATH || path.resolve(CONFIG_BASE_DIR, configFileName);
 
 async function getFinalConfig() {
@@ -199,7 +200,7 @@ function isNumeric(value) {
     return !isNaN(Number(value));
 }
 
-function ifStringOr(value, defaultValue = '') {
+function ifStringOr(value, defaultValue = null) {
     return isString(value) ? value : defaultValue;
 }
 
@@ -443,8 +444,6 @@ const server = http.createServer((req, res) => {
         const profile = urlParams.get('profile') || null;
         const profileData = getProfile(profile);
 
-        profileData.open_cmd
-
         const editor = urlParams.get('editor') || null;
         openCmd = urlParams.get('open_cmd') || getOpenCmd(profileData);
         const file = urlParams.get('file');
@@ -460,23 +459,40 @@ const server = http.createServer((req, res) => {
             dryRunMode = true;
         }
 
+        if (ifObjectOr(profileData?.options)?.dryRunMode) {
+            dryRunMode = true;
+        }
+
         const projectRoot = String(urlParams.get('project_root') || '').trim() || null;
 
         const appBasePathRemoteMap = callFn(
             (value) => {
                 value = typeof value === 'string' ? value : '';
 
-                if (!value.includes(REMAP_SPLIT_STR) || ['undefined', 'null'].includes(value)) {
+                let profileMapPaths = ifObjectOr(profileData?.mapPaths, {});
+                let mapSplitStr = ifStringOr(ifObjectOr(profileData?.options)?.remapSplitStr, null) || REMAP_SPLIT_STR;
+
+                if (
+                    ifStringOr(profileMapPaths?.local, null)?.trim()
+                    && ifStringOr(profileMapPaths?.remote, null)?.trim()
+                ) {
                     return {
-                        local: '',
-                        remote: '',
+                        local: profileMapPaths?.local,
+                        remote: profileMapPaths?.remote,
+                    }
+                }
+
+                if (!value.includes(mapSplitStr) || ['undefined', 'null'].includes(value)) {
+                    return {
+                        local: ifStringOr(profileMapPaths?.local, null)?.trim(),
+                        remote: ifStringOr(profileMapPaths?.remote, null)?.trim(),
                     };
                 }
 
-                let values = value.split(REMAP_SPLIT_STR);
+                let values = value.split(mapSplitStr);
 
-                let local = values[0] ?? values[1] ?? '';
-                let remote = values[1] ?? values[0] ?? '';
+                let local = values[0] ?? values[1] ?? ifStringOr(profileMapPaths?.local, null)?.trim();
+                let remote = values[1] ?? values[0] ?? ifStringOr(profileMapPaths?.remote, null)?.trim();
 
                 return {
                     local: String(local || '')?.replace(/^(\/){2,}/g, ''),
@@ -587,6 +603,9 @@ const server = http.createServer((req, res) => {
                 },
                 cmd,
                 mappedPath,
+                dryRunMode,
+                profile,
+                profileData,
                 runInfo,
             });
         });
