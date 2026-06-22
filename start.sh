@@ -32,8 +32,7 @@
 
 ### pm2 start ecosystem.config.js
 
-# npx -y pm2 start ./server.cjs -- --name 'pm2-open-in-editor-server' \
-npx -y pm2 start ecosystem.config.cjs -- --name 'pm2-open-in-editor-server' \
+npx -y pm2 start ecosystem.config.cjs -- --name 'open-in-editor-server' \
     --ignore-watch="node_modules" \
     --port 1520 \
     --max-memory-restart 200MB \
