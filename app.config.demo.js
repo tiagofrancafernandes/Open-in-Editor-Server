@@ -35,7 +35,7 @@ export const profiles = {
         },
     },
     'my-project-1': {
-        editor: {
+        open_cmd: {
             command: 'code',
             args: ['-g'],
         },
@@ -50,9 +50,8 @@ export const profiles = {
         },
     },
     'my-project-2': {
-        editor: {
-            command: 'antigravity',
-            args: ['-g'],
+        open_cmd: {
+            command: 'code -g',
         },
         mapPaths: {
             local_root_path:
@@ -65,7 +64,7 @@ export const profiles = {
         },
     },
     'my-windows-iss-project': {
-        editor: {
+        open_cmd: {
             command: 'antigravity',
             args: ['-g'],
         },

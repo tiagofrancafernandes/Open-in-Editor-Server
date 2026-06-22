@@ -55,6 +55,33 @@ async function getFinalConfig() {
 // Example usage using Top-Level Await
 const CONFIG = await getFinalConfig();
 
+// let FRONTEND_PROJECT_ROOT = process.env.FRONTEND_PROJECT_ROOT || process.cwd() + '/';
+// let FRONTEND_PROJECT_ROOT = process.env.FRONTEND_PROJECT_ROOT || path.resolve(process.cwd(), './') || '';
+let FRONTEND_PROJECT_ROOT = process.env.FRONTEND_PROJECT_ROOT || '';
+const EDITOR_OPEN_CMD = process.env.EDITOR_OPEN_CMD || 'code -g';
+let openCmd = EDITOR_OPEN_CMD;
+let dryRunMode = ['on', 'true', '1', 'yes'].includes(process.env.DRY_RUN_MODE || false);
+
+let demoLink = '';
+
+const REMAP_SPLIT_STR = process.env.REMAP_SPLIT_STR || ':'; // on windows, use '=>'
+
+const DEFAULT_LOCAL_ROOT_PATH = process.env.DEFAULT_LOCAL_ROOT_PATH || '/tmp/current-projet-root';
+const LOCAL_ROOT_PATH = process.env.LOCAL_ROOT_PATH || projectCwd;
+const REMOTE_ROOT_PATH = process.env.REMOTE_ROOT_PATH || projectCwd;
+
+// APP_BASE_PATH_REMOTE_MAP="[LOCAL_ROOT_PATH]:[REMOTE_ROOT_PATH]"
+const APP_BASE_PATH_REMOTE_MAP =
+    process.env.APP_BASE_PATH_REMOTE_MAP ||
+    (LOCAL_ROOT_PATH && REMOTE_ROOT_PATH ? `${LOCAL_ROOT_PATH}${REMAP_SPLIT_STR}${REMOTE_ROOT_PATH}` : null);
+
+const LISTEN_HOST = process.env.LISTEN_HOST || '0.0.0.0';
+const LISTEN_PORT = Number(process.env.LISTEN_PORT || 0) || 3001;
+/*eslint-enable*/
+
+const __RUNTIME_ITEMS = {};
+
+
 /**
  *
  * @param {?String} key
@@ -86,33 +113,50 @@ function getConfig(key = null, defaultValue = null) {
     }
 }
 
+/**
+ *
+ * @param {String} profile
+ * @param {Object} defaultValue
+ *
+ * @returns {?Object}
+ */
+function getProfile(profile = null, defaultValue = null) {
+    try {
+        const profiles = ifObjectOr(getConfig('profiles'), {});
+
+        if (!isObject(profiles)) {
+            return ifObjectOr(defaultValue, {})
+        }
+
+        if (!isString(profile)) {
+            return ifObjectOr(defaultValue, {})
+        }
+
+        if (profile in profiles) {
+            return profiles[profile]
+        }
+
+        return ifObjectOr(defaultValue, {});
+    } catch (error) {
+        return ifObjectOr(defaultValue, {});
+    }
+}
+
+function getOpenCmd(profile = null, defaultValue = null) {
+    profile = ifObjectOr(profile, {});
+    let _openCmd = ifObjectOr(profile?.open_cmd, {});
+    let _command = ifStringOr(_openCmd?._command, '')?.trim();
+
+    if (!_command) {
+        return ifStringOr(EDITOR_OPEN_CMD, defaultValue) || defaultValue;
+    }
+
+    let _args = ifArrayOr(_openCmd?.args, [])?.filter(isString)?.map(v => v?.trim())?.join(' ') || '';
+
+    return [_command, _args].join(' ') || defaultValue;
+}
+
 console.log("Active Split String: '%s'", getConfig().remapSplitStr);
-
-// let FRONTEND_PROJECT_ROOT = process.env.FRONTEND_PROJECT_ROOT || process.cwd() + '/';
-// let FRONTEND_PROJECT_ROOT = process.env.FRONTEND_PROJECT_ROOT || path.resolve(process.cwd(), './') || '';
-let FRONTEND_PROJECT_ROOT = process.env.FRONTEND_PROJECT_ROOT || '';
-const EDITOR_OPEN_CMD = process.env.EDITOR_OPEN_CMD || 'code -g';
-let openCmd = EDITOR_OPEN_CMD;
-let dryRunMode = ['on', 'true', '1', 'yes'].includes(process.env.DRY_RUN_MODE || false);
-
-let demoLink = '';
-
-const REMAP_SPLIT_STR = process.env.REMAP_SPLIT_STR || ':'; // on windows, use '=>'
-
-const DEFAULT_LOCAL_ROOT_PATH = process.env.DEFAULT_LOCAL_ROOT_PATH || '/tmp/current-projet-root';
-const LOCAL_ROOT_PATH = process.env.LOCAL_ROOT_PATH || projectCwd;
-const REMOTE_ROOT_PATH = process.env.REMOTE_ROOT_PATH || projectCwd;
-
-// APP_BASE_PATH_REMOTE_MAP="[LOCAL_ROOT_PATH]:[REMOTE_ROOT_PATH]"
-const APP_BASE_PATH_REMOTE_MAP =
-    process.env.APP_BASE_PATH_REMOTE_MAP ||
-    (LOCAL_ROOT_PATH && REMOTE_ROOT_PATH ? `${LOCAL_ROOT_PATH}${REMAP_SPLIT_STR}${REMOTE_ROOT_PATH}` : null);
-
-const LISTEN_HOST = process.env.LISTEN_HOST || '0.0.0.0';
-const LISTEN_PORT = Number(process.env.LISTEN_PORT || 0) || 3001;
-/*eslint-enable*/
-
-const __RUNTIME_ITEMS = {};
 
 const callFn = (fn, args, callback = null) => {
     if (isUndefined(args)) {
@@ -177,6 +221,14 @@ function isNulled(value) {
 
 function ifObjectOr(value, defaultValue = {}) {
     return isObject(value) ? value : defaultValue;
+}
+
+function isArray(value) {
+    return Array.isArray(value);
+}
+
+function ifArrayOr(value, defaultValue = []) {
+    return isArray(value) ? value : defaultValue;
 }
 
 function runtimeItemSet(key, value) {
@@ -388,8 +440,13 @@ const server = http.createServer((req, res) => {
         // 3. Extract the search parameters (optional)
         const urlParams = url.searchParams;
 
+        const profile = urlParams.get('profile') || null;
+        const profileData = getProfile(profile);
+
+        profileData.open_cmd
+
         const editor = urlParams.get('editor') || null;
-        openCmd = urlParams.get('open_cmd') || openCmd;
+        openCmd = urlParams.get('open_cmd') || getOpenCmd(profileData);
         const file = urlParams.get('file');
         dryRunMode = ['on', 'true', '1', 'yes'].includes(
             urlParams.get('dry_run') || urlParams.get('dryRun') || urlParams.get('dryRunMode')
@@ -480,7 +537,7 @@ const server = http.createServer((req, res) => {
                 mappedPath,
                 cmd,
                 configPath,
-                config,
+                config: getConfig(),
             })
             : undefined;
 
