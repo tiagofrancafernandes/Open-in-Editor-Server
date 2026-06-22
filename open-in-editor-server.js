@@ -448,7 +448,7 @@ const server = http.createServer((req, res) => {
 
         const editor = urlParams.get('editor') || null;
         openCmd = urlParams.get('open_cmd') || getOpenCmd(profileData);
-        const file = urlParams.get('file');
+        const file = urlParams.get('file') || urlParams.get('goTo') || urlParams.get('go_to');
         dryRunMode = ['on', 'true', '1', 'yes'].includes(
             urlParams.get('dry_run') || urlParams.get('dryRun') || urlParams.get('dryRunMode')
         );
