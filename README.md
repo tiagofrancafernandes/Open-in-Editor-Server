@@ -1,74 +1,76 @@
 # Open in Editor Server
 
-Um servidor HTTP que facilita abrir arquivos no seu editor de código diretamente a partir de URLs, com suporte a mapeamento de caminhos local/remoto e perfis de projeto.
+> **📖 Available in other languages:** [Português (pt-br)](./README.pt-br.md)
 
-## 🎯 O Que Faz?
+An HTTP server that makes it easy to open files in your code editor directly from URLs, with support for local/remote path mapping and project profiles.
 
-Transforma uma URL como:
+## 🎯 What Does It Do?
+
+Transforms a URL like:
 ```
 http://localhost:3001/__open-in-editor?profile=my-app&file=/var/www/app/index.js:10:5
 ```
 
-Em um comando real:
+Into a real command:
 ```bash
 code -g "/home/dev/projects/my-app/index.js:10:5"
 ```
 
-Perfeito para:
-- ✅ Stack traces clicáveis em produção
-- ✅ Links de erro em logs
-- ✅ XDebug/PHPStorm integrados
-- ✅ Múltiplos projetos com mapeamento automático
+Perfect for:
+- ✅ Clickable stack traces in production
+- ✅ Error links in logs
+- ✅ XDebug/PHPStorm integrations
+- ✅ Multiple projects with automatic mapping
 
 ---
 
-## 📋 Requisitos
+## 📋 Requirements
 
-- **Node.js** 18+ (com suporte a ES modules)
-- **PM2** para modo daemon (automático com `npm install`)
+- **Node.js** 18+ (with ES modules support)
+- **PM2** for daemon mode (automatic with `npm install`)
 
 ```bash
-# Verificar versão do Node
-node --version  # v18.0.0 ou superior
+# Check Node version
+node --version  # v18.0.0 or higher
 ```
 
 ---
 
-## 🚀 Instalação
+## 🚀 Installation
 
-### 1. Clonar/Copiar o Repositório
+### 1. Clone/Copy the Repository
 
 ```bash
-git clone <seu-repo> open-in-editor-server
+git clone <your-repo> open-in-editor-server
 cd open-in-editor-server
 ```
 
-### 2. Instalar Dependências
+### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Configurar o Projeto
+### 3. Configure the Project
 
-Crie `app.config.js` baseado em `app.config.demo.js`:
+Create `app.config.js` based on `app.config.demo.js`:
 
 ```bash
 cp app.config.demo.js app.config.js
 ```
 
-Edite `app.config.js` com seus projetos:
+Edit `app.config.js` with your projects:
 
 ```javascript
 export const profiles = {
-    'meu-projeto': {
+    'my-project': {
         open_cmd: {
             command: 'code',
             args: ['-g']
         },
         mapPaths: {
-            local: '/home/usuario/projetos/meu-projeto',
-            remote: '/var/www/meu-projeto'
+            local: '/home/user/projects/my-project',
+            remote: '/var/www/my-project'
         },
         options: {
             dryRunMode: false,
@@ -77,127 +79,127 @@ export const profiles = {
     },
 };
 
-export const defaultProfile = 'meu-projeto';
-export const remapSplitStr = ':';  // use '=>' no Windows
+export const defaultProfile = 'my-project';
+export const remapSplitStr = ':';  // use '=>' on Windows
 ```
 
 ---
 
-## 🎬 Como Usar
+## 🎬 How to Use
 
-### Modo Desenvolvimento (sem Watch)
+### Development Mode (without Watch)
 
-Ideal para desenvolvimento local simples:
+Ideal for simple local development:
 
 ```bash
 npm run dev
 ```
 
 **Features**:
-- ✅ Roda como daemon em background
-- ✅ Sem recarregamento automático
-- ✅ Salva logs no PM2
-- ✅ Fácil de gerenciar
+- ✅ Runs as daemon in background
+- ✅ No automatic reload
+- ✅ Saves logs in PM2
+- ✅ Easy to manage
 
-### Modo Desenvolvimento (com Watch/Reload)
+### Development Mode (with Watch/Reload)
 
-Para desenvolvimento com recarregamento automático ao mudar código:
+For development with automatic reload when code changes:
 
 ```bash
 npm run dev:watch
 ```
 
 **Features**:
-- ✅ Recarrega automaticamente ao mudar código
-- ✅ Roda como daemon em background
-- ✅ Útil para desenvolvimento ativo
-- ✅ Saída de log disponível com `npm run logs`
+- ✅ Auto-reloads when code changes
+- ✅ Runs as daemon in background
+- ✅ Useful for active development
+- ✅ Log output available with `npm run logs`
 
-### Modo Produção (Daemon com PM2)
+### Production Mode (Daemon with PM2)
 
-Para manter o servidor rodando em background:
+To keep the server running in background:
 
 ```bash
-# Iniciar em desenvolvimento
+# Start in development
 npm run start
 
-# Ou iniciar em produção (com configurações prod)
+# Or start in production (with production settings)
 npm run start:prod
 ```
 
 **Features**:
-- ✅ Roda como daemon (background)
-- ✅ Persiste após reboot
-- ✅ Auto-restart em caso de crash
-- ✅ Gerenciamento via PM2
-- ✅ Recomendado para produção
+- ✅ Runs as daemon (background)
+- ✅ Persists after reboot
+- ✅ Auto-restart on crash
+- ✅ PM2 management
+- ✅ Recommended for production
 
-### Gerenciar o Daemon
+### Manage the Daemon
 
 ```bash
-# Ver status
+# See status
 npm run status
 
-# Ver logs em tempo real
+# View logs in real-time
 npm run logs
 
-# Reiniciar
+# Restart
 npm run restart
 
-# Parar
+# Stop
 npm run stop
 ```
 
 ---
 
-## 🔄 Auto-iniciar com o Sistema
+## 🔄 Auto-start with System
 
-Para que o servidor seja iniciado automaticamente quando o computador reinicia, configure o PM2:
+To have the server start automatically when your computer reboots, configure PM2:
 
-### Opção 1: Configurar Auto-startup (Recomendado)
+### Option 1: Configure Auto-startup (Recommended)
 
 ```bash
-# Configurar PM2 para iniciar com o sistema (systemd)
+# Configure PM2 to start with the system (systemd)
 npm run pm2:startup
 
-# Isso irá:
-# 1. Criar serviço systemd para PM2
-# 2. Salvar aplicações atuais
-# 3. Testar configuração
+# This will:
+# 1. Create systemd service for PM2
+# 2. Save current applications
+# 3. Test configuration
 ```
 
-**Verificar se funcionou:**
+**Verify it worked:**
 ```bash
-# Ver se o serviço PM2 está habilitado
+# See if the PM2 service is enabled
 systemctl status pm2-$(whoami)
 
-# Ver aplicações salvas
+# See saved applications
 pm2 list
 ```
 
-### Opção 2: Remover Auto-startup
+### Option 2: Remove Auto-startup
 
-Se precisar desabilitar:
+If you need to disable it:
 
 ```bash
 npm run pm2:unstartup
 ```
 
-### Como Funciona?
+### How Does It Work?
 
-1. `npm run pm2:startup` cria um serviço systemd que gerencia PM2
-2. PM2 carrega todas as aplicações salvas ao boot
-3. Se o servidor cair, PM2 o reinicia automaticamente
-4. Log disponível em: `/home/$(whoami)/.pm2/logs/`
+1. `npm run pm2:startup` creates a systemd service that manages PM2
+2. PM2 loads all saved applications on boot
+3. If the server crashes, PM2 restarts it automatically
+4. Logs available at: `/home/$(whoami)/.pm2/logs/`
 
-### ⚠️ Importante
+### ⚠️ Important
 
-- **Antes de ativar**, certifique-se que:
-  - `npm run start` funciona sem erros
-  - Arquivo `app.config.js` está configurado corretamente
-  - Porta 3001 (ou a configurada) não está em uso
+- **Before enabling**, make sure that:
+  - `npm run start` works without errors
+  - File `app.config.js` is configured correctly
+  - Port 3001 (or your configured port) is not in use
 
-- **Após ativar**, teste:
+- **After enabling**, test:
   ```bash
   npm run status
   npm run logs
@@ -205,75 +207,75 @@ npm run pm2:unstartup
 
 ---
 
-## ⚙️ Configuração
+## ⚙️ Configuration
 
-### Arquivo: `app.config.js`
+### File: `app.config.js`
 
-Este arquivo define todos os perfis do seu projeto. **Sempre que alterar, também atualize `app.config.demo.js`**:
+This file defines all your project profiles. **Whenever you modify it, also update `app.config.demo.js`**:
 
 ```bash
-# 1. Altere app.config.js conforme necessário
-# 2. Atualize app.config.demo.js com as mesmas mudanças
+# 1. Edit app.config.js as needed
+# 2. Update app.config.demo.js with the same changes
 cp app.config.js app.config.demo.js
 ```
 
-#### Estrutura Completa de um Perfil
+#### Full Profile Structure
 
 ```javascript
 export const profiles = {
     'my-project': {
-        // Editor a usar
+        // Editor to use
         open_cmd: {
-            command: 'code',      // Comando do editor
-            args: ['-g']          // Argumentos (opcional)
+            command: 'code',      // Editor command
+            args: ['-g']          // Arguments (optional)
         },
 
-        // Mapeamento de caminhos
+        // Path mapping
         mapPaths: {
-            local: '/home/dev/projects/my-project',  // Seu caminho local
-            remote: '/var/www/my-project'             // Caminho remoto/container
+            local: '/home/dev/projects/my-project',  // Your local path
+            remote: '/var/www/my-project'             // Remote/container path
         },
 
-        // Opções específicas do perfil
+        // Profile-specific options
         options: {
-            dryRunMode: false,           // Forçar modo dry-run (sem executar)
-            runInfo: false,              // Mostrar informações de execução
-            remapSplitStr: ':'           // Separador para paths (linux)
-                                         // Use '=>' para Windows
+            dryRunMode: false,           // Force dry-run mode (no execution)
+            runInfo: false,              // Show execution information
+            remapSplitStr: ':'           // Separator for paths (linux)
+                                         // Use '=>' for Windows
         },
     },
 };
 
-// Perfil padrão se nenhum for especificado
+// Default profile if none is specified
 export const defaultProfile = 'my-project';
 
-// Separador global (se não definido no perfil)
-export const remapSplitStr = ':';  // ':' para Linux/Mac, '=>' para Windows
+// Global separator (if not defined in profile)
+export const remapSplitStr = ':';  // ':' for Linux/Mac, '=>' for Windows
 ```
 
-### Variáveis de Ambiente
+### Environment Variables
 
-Alternativa/complemento ao `app.config.js`:
+Alternative/complement to `app.config.js`:
 
 ```bash
-# Editor padrão
+# Default editor
 export EDITOR_OPEN_CMD="code -g"
 
-# Porta e host
+# Port and host
 export LISTEN_PORT=3001
 export LISTEN_HOST=0.0.0.0
 
-# Modo dry-run (teste sem executar)
+# Dry-run mode (test without executing)
 export DRY_RUN_MODE=false
 
-# Separador de path
+# Path separator
 export REMAP_SPLIT_STR=":"
 
-# Iniciar servidor
+# Start server
 npm run dev
 ```
 
-**Prioridade**:
+**Priority**:
 1. URL parameters (`?file=...`)
 2. Profile config (`app.config.js`)
 3. Environment variables
@@ -281,9 +283,9 @@ npm run dev
 
 ---
 
-## 📖 Exemplos de Uso
+## 📖 Usage Examples
 
-### Exemplo 1: VS Code com Projeto Vue
+### Example 1: VS Code with Vue Project
 
 ```javascript
 // app.config.js
@@ -301,7 +303,7 @@ URL:
 http://localhost:3001/__open-in-editor?profile=vue-app&file=/var/www/vue-app/src/App.vue:42:10
 ```
 
-### Exemplo 2: Antigravity com Projeto Laravel
+### Example 2: Antigravity with Laravel Project
 
 ```javascript
 // app.config.js
@@ -319,7 +321,7 @@ URL:
 ?profile=laravel-app&file=/var/www/laravel-app/app/Http/Controllers/PostController.php:15:20
 ```
 
-### Exemplo 3: Projeto Windows (IIS)
+### Example 3: Windows Project (IIS)
 
 ```javascript
 // app.config.js
@@ -330,12 +332,12 @@ URL:
         remote: 'C:\\inetpub\\wwwroot\\app'
     },
     options: {
-        remapSplitStr: '=>'  // Para Windows
+        remapSplitStr: '=>'  // For Windows
     },
 }
 ```
 
-### Exemplo 4: Modo Protegido para Produção
+### Example 4: Protected Mode for Production
 
 ```javascript
 // app.config.js
@@ -346,36 +348,36 @@ URL:
         remote: '/var/www/my-app'
     },
     options: {
-        dryRunMode: true,  // 🔒 Força modo dry-run!
-        runInfo: true,     // Mostra o comando sem executar
+        dryRunMode: true,  // 🔒 Force dry-run mode!
+        runInfo: true,     // Show the command without executing
     },
 }
 ```
 
 ---
 
-## 🔗 Integrando com Seu Projeto
+## 🔗 Integrating with Your Project
 
-### Com Laravel (XDebug)
+### With Laravel (XDebug)
 
-Adicione em `php.ini` ou `.env`:
+Add to `php.ini` or `.env`:
 
 ```ini
 xdebug.file_link_format = "http://localhost:3001/__open-in-editor?profile=my-app&file=%f:%l:%c"
 ```
 
-### Com Vue/Nuxt
+### With Vue/Nuxt
 
-Em seu middleware ou error handler:
+In your middleware or error handler:
 
 ```javascript
 const editorLink = `http://localhost:3001/__open-in-editor?profile=my-app&file=${file}:${line}:${col}`;
 console.log(`Error: ${message} ${editorLink}`);
 ```
 
-### Com Node/Express
+### With Node/Express
 
-No seu error handler:
+In your error handler:
 
 ```javascript
 app.use((err, req, res, next) => {
@@ -389,81 +391,83 @@ app.use((err, req, res, next) => {
 
 ---
 
-## 🐛 Debug e Troubleshooting
+## 🐛 Debug and Troubleshooting
 
-### Ver Informações de Execução
+### View Execution Information
 
-Adicione `&runInfo=1` para ver detalhes:
+Add `&runInfo=1` to see details:
 
 ```
 ?profile=my-app&file=/var/www/my-app/app.js:10:5&runInfo=1
 ```
 
-Retorna JSON com:
-- Comando que será/foi executado
-- Caminho mapeado
-- Todas as configurações aplicadas
+Returns JSON with:
+- Command that will/was executed
+- Mapped path
+- All applied configurations
 
-### Modo Dry-Run (Teste sem Executar)
+### Dry-Run Mode (Test without Executing)
 
 ```
 ?profile=my-app&file=/var/www/my-app/app.js:10:5&dryRun=1
 ```
 
-Mostra o comando sem executar de verdade.
+Shows the command without actually executing it.
 
-### Verificar Logs do Servidor
+### View Server Logs
 
 ```bash
-# Em tempo real
+# In real-time
 npm run logs
 
-# Ou ver status
+# Or see status
 npm run status
 ```
 
-### Problemas Comuns
+### Common Issues
 
 #### "Invalid file or missing file param"
-- Verifique que o arquivo existe no caminho mapeado
-- Use `&runInfo=1` para ver o mapeamento real
+- Verify that the file exists in the mapped path
+- Use `&runInfo=1` to see the actual mapping
 
 #### "Error opening editor"
-- Verifique que o editor está instalado: `which code`, `which antigravity`
-- Teste o comando manualmente: `code -g "/path/to/file.js:10:5"`
+- Verify the editor is installed: `which code`, `which antigravity`
+- Test the command manually: `code -g "/path/to/file.js:10:5"`
 
-#### Perfil não encontrado
-- Use `&runInfo=1` para ver qual perfil foi usado
-- Verifique o nome do perfil em `app.config.js`
+#### Profile not found
+- Use `&runInfo=1` to see which profile was used
+- Verify the profile name in `app.config.js`
 
 ---
 
-## 📁 Estrutura do Projeto
+## 📁 Project Structure
 
 ```
 open-in-editor-server/
-├── open-in-editor-server.js      # Servidor principal
-├── app.config.js                 # Configuração (NÃO commitar no git)
-├── app.config.demo.js            # Exemplo de configuração
-├── ecosystem.config.cjs          # Config PM2
-├── package.json                  # Scripts e dependências
+├── open-in-editor-server.js      # Main server
+├── app.config.js                 # Configuration (DO NOT commit to git)
+├── app.config.demo.js            # Configuration example
+├── ecosystem.config.cjs          # PM2 Config
+├── package.json                  # Scripts and dependencies
 ├── package-lock.json             # Lock file
-├── README.md                      # Este arquivo
-├── GUIDE_PROFILES.md             # Guia prático de perfis
-├── PROFILE_ANALYSIS.md           # Análise técnica
-├── test-profiles.js              # Testes unitários
-├── test-integration.js           # Testes de integração
-└── .gitignore                    # Ignora app.config.js
+├── README.md                      # This file (English)
+├── README.pt-br.md               # Portuguese version
+├── GUIDE_PROFILES.md             # Profiles practical guide (English)
+├── GUIDE_PROFILES.pt-br.md       # Portuguese version
+├── PROFILE_ANALYSIS.md           # Technical analysis
+├── test-profiles.js              # Unit tests
+├── test-integration.js           # Integration tests
+└── .gitignore                    # Ignores app.config.js
 ```
 
 ---
 
-## 📝 Arquivo `.gitignore`
+## 📝 `.gitignore` File
 
-Certifique-se que `app.config.js` está ignorado:
+Make sure `app.config.js` is ignored:
 
 ```gitignore
-# Configuration (sempre ignorar!)
+# Configuration (always ignore!)
 app.config.js
 
 # Dependencies
@@ -478,49 +482,49 @@ logs/
 
 ---
 
-## 🚀 Workflow Recomendado
+## 🚀 Recommended Workflow
 
-### 1. Setup Inicial
+### 1. Initial Setup
 
 ```bash
 git clone <repo>
 cd open-in-editor-server
 npm install
 cp app.config.demo.js app.config.js
-# Edite app.config.js com seus dados
+# Edit app.config.js with your data
 ```
 
-### 2. Desenvolvimento Local
+### 2. Local Development
 
 ```bash
 npm run dev
-# Servidor com watch: http://localhost:3001
+# Server with watch: http://localhost:3001
 ```
 
-### 3. Testar Antes de Commitar
+### 3. Test Before Committing
 
 ```bash
-npm run prettier  # Formatar código
-# Testar URLs com &runInfo=1&dryRun=1
+npm run prettier  # Format code
+# Test URLs with &runInfo=1&dryRun=1
 ```
 
-### 4. Deploy em Produção
+### 4. Deploy to Production
 
 ```bash
 # Via PM2
 npm run start:prod
 
-# Ver status
+# See status
 npm run status
 
-# Ver logs
+# View logs
 npm run logs
 ```
 
-### 5. Manutenção
+### 5. Maintenance
 
 ```bash
-# Quando atualizar app.config.js, também atualize demo:
+# When updating app.config.js, also update demo:
 cp app.config.js app.config.demo.js
 git add app.config.demo.js
 git commit -m "refactor: update config demo"
@@ -528,74 +532,80 @@ git commit -m "refactor: update config demo"
 
 ---
 
-## 📚 Documentação Adicional
+## 📚 Additional Documentation
 
-- **[GUIDE_PROFILES.md](./GUIDE_PROFILES.md)** - Guia prático com exemplos reais
-- **[PROFILE_ANALYSIS.md](./PROFILE_ANALYSIS.md)** - Análise técnica da implementação
-- **[CLAUDE.md](./CLAUDE.md)** - Instruções para AI/Claude
-- **[AGENT.md](./AGENT.md)** - Instruções para automação
+- **[GUIDE_PROFILES.md](./GUIDE_PROFILES.md)** - Practical guide with real examples
+- **[GUIDE_PROFILES.pt-br.md](./GUIDE_PROFILES.pt-br.md)** - Portuguese version (Versão em português)
+- **[README.pt-br.md](./README.pt-br.md)** - Portuguese version of this file (Versão em português deste arquivo)
+- **[PROFILE_ANALYSIS.md](./PROFILE_ANALYSIS.md)** - Technical implementation analysis
+- **[CLAUDE.md](./CLAUDE.md)** - Instructions for AI/Claude
+- **[AGENTS.md](./AGENTS.md)** - Automation instructions
 
 ---
 
-## 🔐 Segurança
+## 🔐 Security
 
-### ⚠️ Importante para Produção
+### ⚠️ Important for Production
 
-1. **Sempre use `dryRunMode: true` para produção**
+1. **Always use `dryRunMode: true` for production**
    ```javascript
    'prod-app': {
-       options: { dryRunMode: true }  // Protege contra execução acidental
+       options: { dryRunMode: true }  // Protects against accidental execution
    }
    ```
 
-2. **Não commitar `app.config.js`**
-   - Adicione ao `.gitignore`
-   - Use `app.config.demo.js` como exemplo
+2. **Never commit `app.config.js`**
+   - Add to `.gitignore`
+   - Use `app.config.demo.js` as an example
 
-3. **Validar permissões de acesso**
-   - Considere adicionar autenticação se público
-   - Use firewall para restringir acesso
+3. **Validate access permissions**
+   - Consider adding authentication if public
+   - Use firewall to restrict access
 
-4. **Monitorar logs**
-   - Verifique logs regularmente com `npm run logs`
-   - Alerte sobre erros anormais
+4. **Monitor logs**
+   - Check logs regularly with `npm run logs`
+   - Alert on abnormal errors
 
 ---
 
 ## 🤝 Contributing
 
-1. Faça suas mudanças em uma branch
-2. Rode os testes: `node test-profiles.js` e `node test-integration.js`
-3. Formate o código: `npm run prettier`
-4. Se alterar `app.config.js`, atualize `app.config.demo.js`
-5. Commit com mensagem descritiva
+1. Make your changes in a branch
+2. Run the tests: `node test-profiles.js` and `node test-integration.js`
+3. Format the code: `npm run prettier`
+4. If you modify `app.config.js`, update `app.config.demo.js`
+5. Commit with a descriptive message
 
 ---
 
-## 📞 Suporte
+## 📞 Support
 
-Para dúvidas ou problemas:
+For questions or issues:
 
-1. Verifique este README
-2. Veja [GUIDE_PROFILES.md](./GUIDE_PROFILES.md)
-3. Execute com `&runInfo=1` para debug
-4. Verifique os logs com `npm run logs`
-
----
-
-## 📄 Licença
-
-Veja LICENSE file (se aplicável)
+1. Check this README
+2. See [GUIDE_PROFILES.md](./GUIDE_PROFILES.md)
+3. Run with `&runInfo=1` for debugging
+4. Check the logs with `npm run logs`
 
 ---
 
-## 🎉 Pronto!
+## 📄 License
 
-Seu servidor está configurado e pronto para usar. Comece com:
+See LICENSE file (if applicable)
+
+---
+
+## 🎉 Ready!
+
+Your server is configured and ready to use. Start with:
 
 ```bash
 npm run dev
-# Acesse: http://localhost:3001/__open-in-editor?profile=seu-perfil&file=/path/to/file.js:10:5
+# Access: http://localhost:3001/__open-in-editor?profile=your-profile&file=/path/to/file.js:10:5
 ```
 
-Boa codificação! 🚀
+Happy coding! 🚀
+
+---
+
+**Next step:** Read [GUIDE_PROFILES.md](./GUIDE_PROFILES.md) for practical examples and how to create your first profile!
