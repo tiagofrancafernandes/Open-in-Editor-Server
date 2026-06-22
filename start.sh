@@ -25,7 +25,7 @@
 
 set -e  # Exit on error
 
-CONFIG_FILE="${1:-ecosystem.config.cjs}"
+CONFIG_FILE="ecosystem.config.cjs"
 
 # Valida existência do arquivo de configuração
 if [ ! -f "$CONFIG_FILE" ]; then
@@ -33,13 +33,17 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 1
 fi
 
-# Remove primeiro argumento para passar o resto
-shift 2>/dev/null || true
+if [[ "$1" = 'start' || "$1" = ""  || -z "$1" ]]; then
+    # Remove primeiro argumento para passar o resto
+    shift 2>/dev/null || true
 
-# Inicia com PM2
-npx pm2 start "$CONFIG_FILE" -- \
-    --name 'open-in-editor-server' \
-    --ignore-watch="node_modules" \
-    --port 1520 \
-    --max-memory-restart 200MB \
-    --time "$@"
+    # Inicia com PM2
+    npx -y pm2 start "$CONFIG_FILE" -- \
+        --name 'open-in-editor-server' \
+        --ignore-watch="node_modules" \
+        --port 1520 \
+        --max-memory-restart 200MB \
+        --time "$@"
+else
+    npx -y pm2 "$@"
+fi
