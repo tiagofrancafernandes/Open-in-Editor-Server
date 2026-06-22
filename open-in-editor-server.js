@@ -12,7 +12,8 @@ import http from 'node:http';
 import { exec } from 'node:child_process';
 
 // let FRONTEND_PROJECT_ROOT = process.env.FRONTEND_PROJECT_ROOT || process.cwd() + '/';
-let FRONTEND_PROJECT_ROOT = process.env.FRONTEND_PROJECT_ROOT || path.resolve(process.cwd(), './');
+// let FRONTEND_PROJECT_ROOT = process.env.FRONTEND_PROJECT_ROOT || path.resolve(process.cwd(), './') || '';
+let FRONTEND_PROJECT_ROOT = process.env.FRONTEND_PROJECT_ROOT || '';
 const EDITOR_OPEN_CMD = process.env.EDITOR_OPEN_CMD || 'code -g';
 let openCmd = EDITOR_OPEN_CMD;
 let dryRunMode = ['on', 'true', '1'].includes(process.env.DRY_RUN_MODE || false);
@@ -28,6 +29,40 @@ const LISTEN_PORT = Number(process.env.LISTEN_PORT || 0) || 3001;
 /*eslint-enable*/
 
 const __RUNTIME_ITEMS = {}
+
+const callFn = (fn, args, callback = null) => {
+    if (isUndefined(args)) {
+        args = []
+    }
+
+    args = Array.isArray(args) ? args : [args];
+
+    let output = null;
+    callback = typeof callback === 'function' ? callback : (error, output) => { }
+
+    try {
+
+        if (typeof fn !== 'function') {
+            return undefined;
+        }
+
+        output = fn(...args);
+
+        callback(null, output);
+
+        return output;
+    } catch (error) {
+        if (callback && typeof callback === 'function') {
+            try {
+                callback(error, output);
+            } catch (error) {
+                return undefined;
+            }
+        }
+
+        return undefined;
+    }
+}
 
 function isString(value) {
     return typeof value === 'string';
@@ -242,49 +277,55 @@ const server = http.createServer((req, res) => {
         const file = urlParams.get('file');
         dryRunMode = ['on', 'true', '1'].includes(urlParams.get('dry_run') || urlParams.get('dryRun') || urlParams.get('dryRunMode'));
         dryRunMode = true;
-        const projectRoot = String(urlParams.get('project_root')).trim() || null;
+        const projectRoot = String(urlParams.get('project_root') || '').trim() || null;
 
-        const appBasePathRemoteMap = ((value) => {
-            try {
-                value = typeof value === 'string' ? value : '';
+        const appBasePathRemoteMap = callFn((value) => {
+            value = typeof value === 'string' ? value : '';
 
-                if (!value.includes(REMAP_SPLIT_STR)) {
-                    return {
-                        local: DEFAULT_LOCAL_ROOT_PATH,
-                        remote: DEFAULT_LOCAL_ROOT_PATH,
-                    };
-                }
-
-                let values = value.split(REMAP_SPLIT_STR);
-
+            if (!value.includes(REMAP_SPLIT_STR) || ['undefined', 'null'].includes(value)) {
                 return {
-                    local: values[0] ?? values[1] ?? DEFAULT_LOCAL_ROOT_PATH,
-                    remote: values[1] ?? values[0] ?? DEFAULT_LOCAL_ROOT_PATH,
-                }
-            } catch (error) {
-                return null;
+                    local: '',
+                    remote: '',
+                };
             }
-        })(urlParams.get('app_base_path_remote_map') || APP_BASE_PATH_REMOTE_MAP || null);
+
+            let values = value.split(REMAP_SPLIT_STR);
+
+            let local = values[0] ?? values[1] ?? DEFAULT_LOCAL_ROOT_PATH;
+            let remote = values[1] ?? values[0] ?? '';
+
+            return {
+                local: String (local || '')?.replace(/^(\/){2,}/g, ''),
+                remote: String (remote || '')?.replace(/^(\/){2,}/g, ''),
+            }
+        }, [urlParams.get('app_base_path_remote_map') || APP_BASE_PATH_REMOTE_MAP || null]);
 
         if (['auto', '', 'auto', 'url', 'query'].includes(FRONTEND_PROJECT_ROOT)) {
-            FRONTEND_PROJECT_ROOT = projectRoot || DEFAULT_LOCAL_ROOT_PATH;
+            FRONTEND_PROJECT_ROOT = projectRoot || '';
         }
 
         const decoded = decodeURIComponent(file);
         const [path, line = 1, col = 1] = decoded.split(':');
 
         // mapear path do container → host
-        const mappedPath = [
-            FRONTEND_PROJECT_ROOT,
-            path
-                .replace('/app', '')
-                .replace(/^(\/){1,}/g, '')
-                .trim(),
-        ]
-            .filter((v) => typeof v === 'string' && v.trim())
-            .map((v) => v.replace(/(\/){1,}$/g, ''))
-            .join('/')
-            .replace(appBasePathRemoteMap?.remote || '', appBasePathRemoteMap?.local || '');
+        const mappedPath = callFn(() => {
+            let value = [
+                FRONTEND_PROJECT_ROOT,
+                path
+                    .replace('/app', '')
+                    .replace(/^(\/){2,}/g, '')
+                    .trim(),
+            ]
+                .filter((v) => typeof v === 'string' && v.trim())
+                .map((v) => v.replace(/(\/){1,}$/g, ''))
+                .join('/');
+
+            if (appBasePathRemoteMap?.remote && appBasePathRemoteMap?.local) {
+                value = value.replace(appBasePathRemoteMap?.remote || '', appBasePathRemoteMap?.local || '')
+            }
+
+            return value;
+        });
 
         const cmd = (dryRunMode ? 'echo ' : ' ') + `${openCmd} "${mappedPath}:${line}:${col}"`;
         let isInvalidFile = !file || cmd.includes('null/null');
@@ -306,7 +347,7 @@ const server = http.createServer((req, res) => {
             cmd,
         });
 
-        if (!isInvalidFile) {
+        if (isInvalidFile) {
             res.statusCode = 400;
             return sendResponseAsJson({
                 message: 'Invalid file or missing file param',
@@ -341,6 +382,7 @@ const server = http.createServer((req, res) => {
                 },
                 openInfo: {
                     FRONTEND_PROJECT_ROOT,
+                    'FRONTEND_PROJECT_ROOT_': FRONTEND_PROJECT_ROOT || 'sss',
                     EDITOR_OPEN_CMD,
                     openCmd,
                 },
