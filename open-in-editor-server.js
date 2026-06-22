@@ -599,7 +599,7 @@ const server = http.createServer((req, res) => {
                 },
                 openInfo: {
                     FRONTEND_PROJECT_ROOT,
-                    FRONTEND_PROJECT_ROOT_: FRONTEND_PROJECT_ROOT || 'sss',
+                    FRONTEND_PROJECT_ROOT_: FRONTEND_PROJECT_ROOT || '',
                     EDITOR_OPEN_CMD,
                     openCmd,
                 },
