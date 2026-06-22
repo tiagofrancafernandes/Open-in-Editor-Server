@@ -169,7 +169,7 @@ const callFn = (fn, args, callback = null) => {
     args = Array.isArray(args) ? args : [args];
 
     let output = null;
-    callback = typeof callback === 'function' ? callback : (error, output) => {};
+    callback = typeof callback === 'function' ? callback : (error, output) => { };
 
     try {
         if (typeof fn !== 'function') {
@@ -381,7 +381,9 @@ function getDemoLink(extra = {}) {
 
     if (!url) {
         let req = getResponseObject(extra?.req, true) || {};
-        let reqBaseHost = req?.headers?.host || 'localhost';
+        let reqBaseHost = req.headers['x-forwarded-server'] || req.headers['x-forwarded-host']
+            || req?.headers?.host || 'localhost';
+
         url = new URL(req?.url, `http://${reqBaseHost}`);
     }
 
@@ -433,7 +435,8 @@ const server = http.createServer((req, res) => {
 
     try {
         // 1. Create the URL object. A dummy base is required because req.url does not include the domain name.
-        let reqBaseHost = req?.headers?.host || 'localhost';
+        let reqBaseHost = req.headers['x-forwarded-server'] || req.headers['x-forwarded-host']
+            || req?.headers?.host || 'localhost';
         const url = new URL(req.url, `http://${reqBaseHost}`);
 
         // 2. Extract the clean path (e.g., '/products')
@@ -540,23 +543,30 @@ const server = http.createServer((req, res) => {
 
         let runInfo = ['on', 'true', '1', 'yes', ''].includes(urlParams.get('runInfo') ?? urlParams.get('debug'))
             ? getRunInfo({
-                  method: req?.method,
-                  url,
-                  file,
-                  isInvalidFile,
-                  uri,
-                  urlPath,
-                  editor,
-                  urlParams,
-                  dryRunMode,
-                  projectRoot,
-                  appBasePathRemoteMap,
-                  FRONTEND_PROJECT_ROOT,
-                  mappedPath,
-                  cmd,
-                  configPath,
-                  config: getConfig(),
-              })
+                method: req?.method,
+                url,
+                file,
+                isInvalidFile,
+                uri,
+                urlPath,
+                editor,
+                urlParams,
+                dryRunMode,
+                projectRoot,
+                appBasePathRemoteMap,
+                FRONTEND_PROJECT_ROOT,
+                mappedPath,
+                cmd,
+                configPath,
+                config: getConfig(),
+                hosts: {
+                    "req?.headers?.host": req?.headers?.host,
+                    "req.headers['x-forwarded-server']": req.headers['x-forwarded-server'],
+                    "req.headers['x-forwarded-host']": req.headers['x-forwarded-host'],
+                    currentHost: req.headers['x-forwarded-server'] || req.headers['x-forwarded-host']
+                        || req?.headers?.host || 'localhost',
+                },
+            })
             : undefined;
 
         if (isInvalidFile) {

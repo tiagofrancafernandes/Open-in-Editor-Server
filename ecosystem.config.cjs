@@ -4,6 +4,7 @@
 module.exports = {
     apps: [
         {
+            name: 'open-in-editor-server',
             script: './open-in-editor-server.js',
             // watch: '.',
             env: {
