@@ -19,7 +19,7 @@ const packageJsonFile = path.resolve(process.cwd(), './package.json') || './pack
 let FRONTEND_PROJECT_ROOT = process.env.FRONTEND_PROJECT_ROOT || '';
 const EDITOR_OPEN_CMD = process.env.EDITOR_OPEN_CMD || 'code -g';
 let openCmd = EDITOR_OPEN_CMD;
-let dryRunMode = ['on', 'true', '1'].includes(process.env.DRY_RUN_MODE || false);
+let dryRunMode = ['on', 'true', '1', 'yes'].includes(process.env.DRY_RUN_MODE || false);
 
 let demoLink = '';
 
@@ -261,7 +261,11 @@ function getDemoLink(extra = {}) {
     /**  @type {URLSearchParams} */
     const urlParams = url.searchParams;
 
-    urlParams.set('dryRun', extra?.dryRun ?? 1);
+    let dryRun = extra?.dryRun ?? urlParams.get('dryRun') ?? 0;
+    urlParams.set('dryRun', dryRun);
+
+    let runInfo = extra?.runInfo ?? urlParams.get('runInfo') ?? 0;
+    urlParams.set('runInfo', runInfo);
 
     // file=/my-remote-base/projects/dev-tools/open-in-editor-server/package.json%3A7%3A39
     urlParams.set('file', `${packageJsonFile}:7:39`);
@@ -315,7 +319,16 @@ const server = http.createServer((req, res) => {
         const editor = urlParams.get('editor') || null;
         openCmd = urlParams.get('open_cmd') || openCmd;
         const file = urlParams.get('file');
-        dryRunMode = ['on', 'true', '1'].includes(urlParams.get('dry_run') || urlParams.get('dryRun') || urlParams.get('dryRunMode'));
+        dryRunMode = ['on', 'true', '1', 'yes'].includes(urlParams.get('dry_run') || urlParams.get('dryRun') || urlParams.get('dryRunMode'));
+
+        if (['on', 'true', '1', 'yes'].includes(urlParams.get('open'))) {
+            dryRunMode = true;
+        }
+
+        if (['off', 'false', '0', 'no'].includes(urlParams.get('open'))) {
+            dryRunMode = true;
+        }
+
         const projectRoot = String(urlParams.get('project_root') || '').trim() || null;
 
         const appBasePathRemoteMap = callFn((value) => {
@@ -373,7 +386,7 @@ const server = http.createServer((req, res) => {
         const cmd = (dryRunMode ? 'echo ' : '') + `${openCmd} "${mappedPath}:${line}:${col}"`;
         let isInvalidFile = !file || cmd.includes('null/null') || cmd.includes(' ":');
 
-        let runInfo = getRunInfo({
+        let runInfo = ['on', 'true', '1', 'yes', ''].includes(urlParams.get('runInfo') ?? urlParams.get('debug')) ? getRunInfo({
             method: req?.method,
             url,
             file,
@@ -388,18 +401,21 @@ const server = http.createServer((req, res) => {
             FRONTEND_PROJECT_ROOT,
             mappedPath,
             cmd,
-        });
+        }) : undefined;
 
         if (isInvalidFile) {
             res.statusCode = 400;
             return sendResponseAsJson({
                 message: 'Invalid file or missing file param',
                 demoLinks: {
-                    dryRunMode: getDemoLink({ url, dryRun: 1 }),
-                    open: getDemoLink({ url, dryRun: false }),
+                    dryRunMode: getDemoLink({ url, dryRun: 1, runInfo: 0 }),
+                    open: getDemoLink({ url, dryRun: 0, runInfo: 0 }),
                 },
                 statusCode: res.statusCode,
                 runInfo,
+                try: {
+                    runInfo: 1,
+                }
             });
         }
 
