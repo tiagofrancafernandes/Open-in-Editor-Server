@@ -2,13 +2,15 @@
 
 # Wrapper para iniciar servidor com PM2
 #
-# Uso: ./start.sh [config_file] [extra_flags]
+# Uso: ./start.sh [pm2 args] [flags]
 #
 # Exemplos:
-#   ./start.sh                              # Usa ecosystem.config.cjs
-#   ./start.sh --env development            # Com variável de ambiente
-#   ./start.sh --watch --env development    # Com watch/reload automático
-#   ./start.sh ecosystem.prod.cjs --env production
+#    bash ./start.sh                              # Usa ecosystem.config.cjs
+#    bash ./start.sh --env development            # Com variável de ambiente
+#    bash ./start.sh --watch --env development    # Com watch/reload automático
+#    bash ./start.sh start ecosystem.config.cjs --env production
+#    bash ./start.sh start ecosystem.config.cjs --env development
+#    bash ./start.sh start my-prod-ecosystem.prod.cjs --env production
 #
 # PM2 Flags (opcional):
 #   --watch                   - Reinicia servidor ao mudar arquivos
@@ -33,7 +35,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 1
 fi
 
-if [[ "$1" = 'start' || "$1" = ""  || -z "$1" ]]; then
+if [[ "$1" = ""  || -z "$1" ]]; then
     # Remove primeiro argumento para passar o resto
     shift 2>/dev/null || true
 
