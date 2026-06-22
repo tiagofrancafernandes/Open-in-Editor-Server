@@ -1,38 +1,38 @@
-# AGENT.md - Instruções para Agentes e Automação
+# AGENTS.md - Instructions for Agents and Automation
 
-Instruções para agentes, bots e sistemas de automação trabalhando neste projeto.
+Instructions for agents, bots, and automation systems working on this project.
 
 ---
 
-## 🤖 O Que Faz Este Projeto?
+## 🤖 What Does This Project Do?
 
-Servidor HTTP que mapeia URLs para comando de abrir arquivo no editor:
+HTTP server that maps URLs to a command that opens a file in the editor:
 
 ```
 URL: http://localhost:3001/__open-in-editor?profile=app&file=/path/to/file.js:10:5
  ↓
-Ação: code -g "/local/path/to/file.js:10:5"
+Action: code -g "/local/path/to/file.js:10:5"
 ```
 
 ---
 
-## 📋 Checklist de Tarefas Comuns
+## 📋 Common Task Checklist
 
 ### Deploy/Setup
 
-- [ ] `npm install` - Instalar dependências
-- [ ] `cp app.config.demo.js app.config.js` - Criar config
-- [ ] Editar `app.config.js` com dados reais
-- [ ] `npm run dev` ou `npm run start:prod`
-- [ ] Testar: `curl "http://localhost:3001/...?profile=test&file=...&runInfo=1&dryRun=1"`
+- [ ] `npm install` - Install dependencies
+- [ ] `cp app.config.demo.js app.config.js` - Create config
+- [ ] Edit `app.config.js` with real data
+- [ ] `npm run dev` or `npm run start:prod`
+- [ ] Test: `curl "http://localhost:3001/...?profile=test&file=...&runInfo=1&dryRun=1"`
 
-### Adicionar Novo Perfil
+### Add New Profile
 
 ```javascript
-// Em app.config.js
+// In app.config.js
 export const profiles = {
-    // ... existentes ...
-    'novo-projeto': {
+    // ... existing ...
+    'new-project': {
         open_cmd: { command: 'code', args: ['-g'] },
         mapPaths: { local: '/local/path', remote: '/remote/path' },
         options: { dryRunMode: false, runInfo: false },
@@ -40,60 +40,60 @@ export const profiles = {
 };
 ```
 
-- [ ] Editar `app.config.js`
-- [ ] Copiar para `app.config.demo.js`
-- [ ] Testar com `?profile=novo-projeto&file=...&runInfo=1&dryRun=1`
-- [ ] Commit mudanças no demo
+- [ ] Edit `app.config.js`
+- [ ] Copy to `app.config.demo.js`
+- [ ] Test with `?profile=new-project&file=...&runInfo=1&dryRun=1`
+- [ ] Commit demo changes
 
-### Atualizar Configuração
+### Update Configuration
 
-- [ ] Editar `app.config.js`
-- [ ] Rodar `npm run prettier`
-- [ ] Testar: `node test-profiles.js` + `node test-integration.js`
-- [ ] Copiar para `app.config.demo.js`
-- [ ] Commit se tudo passar
+- [ ] Edit `app.config.js`
+- [ ] Run `npm run prettier`
+- [ ] Test: `node test-profiles.js` + `node test-integration.js`
+- [ ] Copy to `app.config.demo.js`
+- [ ] Commit if everything passes
 
 ### Troubleshooting
 
-- [ ] Checar logs: `npm run logs`
-- [ ] Testar com `&runInfo=1&dryRun=1`
-- [ ] Rodar testes: `node test-profiles.js`
-- [ ] Verificar que editor existe: `which code` / `which antigravity`
+- [ ] Check logs: `npm run logs`
+- [ ] Test with `&runInfo=1&dryRun=1`
+- [ ] Run tests: `node test-profiles.js`
+- [ ] Verify the editor exists: `which code` / `which antigravity`
 
 ---
 
-## 🔗 Endpoints Chave
+## 🔗 Key Endpoints
 
-### Abrir arquivo
+### Open File
 
 ```
 GET /__open-in-editor?profile=APP&file=PATH:LINE:COL&runInfo=1&dryRun=1
 ```
 
-**Parâmetros**:
-- `profile` (required) - Nome do perfil
-- `file` (required) - Caminho remoto com linha e coluna
+**Parameters**:
+- `profile` (required) - Profile name
+- `file` (required) - Remote path with line and column
 - `runInfo` (optional) - 1 = show info, 0 = hide
-- `dryRun` (optional) - 1 = não execute, 0 = execute
-- `open_cmd` (optional) - Sobrescrever editor
+- `dryRun` (optional) - 1 = do not execute, 0 = execute
+- `open_cmd` (optional) - Override editor
 
-**Resposta**: JSON com resultado
+**Response**: JSON with the result
 
 ---
 
-## 🧪 Testes Automatizados
+## 🧪 Automated Tests
 
-### Rodar testes
+### Run Tests
 
 ```bash
 npm install
-node test-profiles.js      # Testes unitários
-node test-integration.js   # Testes integração
+node test-profiles.js      # Unit tests
+node test-integration.js    # Integration tests
 ```
 
-**Esperado**: ✅ Todos passando
+**Expected**: ✅ All passing
 
-### Integração com CI/CD
+### CI/CD Integration
 
 ```yaml
 # .github/workflows/test.yml
@@ -117,31 +117,31 @@ jobs:
 
 ## 🚀 Deployment
 
-### Desenvolvimento
+### Development
 
 ```bash
-npm run dev           # Com watch
-npm run dev:no-watch  # Sem watch
+npm run dev           # With watch
+npm run dev:no-watch   # Without watch
 ```
 
-### Produção (PM2)
+### Production (PM2)
 
 ```bash
-npm run start         # Modo dev via PM2
-npm run start:prod    # Modo prod via PM2
-npm run logs          # Ver logs
-npm run stop          # Parar
-npm run restart       # Reiniciar
+npm run start         # Dev mode via PM2
+npm run start:prod    # Production mode via PM2
+npm run logs          # View logs
+npm run stop          # Stop
+npm run restart       # Restart
 ```
 
 ---
 
-## 📊 Configuração Estrutura
+## 📊 Configuration Structure
 
 ```javascript
 // app.config.js
 export const serverConfig = {
-    // Porta e host
+    // Port and host
     LISTEN_PORT: 3001,
     LISTEN_HOST: '0.0.0.0',
 
@@ -166,9 +166,9 @@ export const defaultProfile = 'project-name';
 
 ---
 
-## 🔄 Workflow de CI/CD
+## 🔄 CI/CD Workflow
 
-1. **Pull Request**: Testes devem passar
+1. **Pull Request**: Tests must pass
 2. **Merge**: Build + deploy
 3. **Production**: PM2 reload
 
@@ -184,7 +184,7 @@ pm2 start ecosystem.config.cjs --env production
 
 ---
 
-## 📈 Monitoramento
+## 📈 Monitoring
 
 ### Logs
 
@@ -192,39 +192,39 @@ pm2 start ecosystem.config.cjs --env production
 npm run logs
 ```
 
-Monitore erros:
+Watch for errors:
 - "Invalid file"
 - "Error opening editor"
 - Path mapping issues
 
 ### Metrics
 
-Rastreie:
-- Quantidade de requisições
-- Perfis mais usados
-- Erros por tipo
-- Tempo de resposta
+Track:
+- Request count
+- Most used profiles
+- Errors by type
+- Response time
 
 ```javascript
-// Adicionar ao servidor:
+// Add to the server:
 const requestCount = {};
 const errorCount = {};
 
-// Log cada requisição
+// Log each request
 console.log(`${profile} | ${file} | ${statusCode}`);
 ```
 
 ---
 
-## 🐛 Debugging Programático
+## 🐛 Programmatic Debugging
 
-### Testar via HTTP
+### Test via HTTP
 
 ```bash
 curl -s "http://localhost:3001/__open-in-editor?profile=test&file=/path:1:1&runInfo=1&dryRun=1" | jq
 ```
 
-### Testar via Node
+### Test via Node
 
 ```javascript
 import { spawn } from 'child_process';
@@ -233,48 +233,48 @@ const proc = spawn('node', ['open-in-editor-server.js'], {
     env: { LISTEN_PORT: 3001, LISTEN_HOST: 'localhost' }
 });
 
-// Depois testar via HTTP...
+// Then test via HTTP...
 ```
 
 ---
 
-## 📝 Convenções de Código
+## 📝 Code Conventions
 
-### Nomes de Perfil
+### Profile Names
 
 - ✅ kebab-case: `my-project`, `vue-app`
 - ❌ camelCase: `myProject`
 - ❌ UPPERCASE: `MY_PROJECT`
 
-### Estrutura de Diretório
+### Directory Structure
 
 ```
 .
-├── open-in-editor-server.js  # Servidor
-├── app.config.js             # Config (não commitar)
-├── app.config.demo.js        # Demo (commitar)
-├── default.config.js         # Defaults (commitar)
-├── ecosystem.config.cjs      # PM2 (commitar)
-├── package.json              # Scripts (commitar)
-├── test-*.js                 # Testes (commitar)
-└── README.md, *.md           # Docs (commitar)
+├── open-in-editor-server.js  # Server
+├── app.config.js             # Config (do not commit)
+├── app.config.demo.js        # Demo (commit)
+├── default.config.js         # Defaults (commit)
+├── ecosystem.config.cjs      # PM2 (commit)
+├── package.json              # Scripts (commit)
+├── test-*.js                 # Tests (commit)
+└── README.md, *.md           # Docs (commit)
 ```
 
 ### Commits
 
 ```
 fix: description          # Bug fix
-feat: description         # Nova feature
-refactor: description     # Refatoração
-test: description         # Novo teste
-docs: description         # Documentação
+feat: description         # New feature
+refactor: description     # Refactoring
+test: description         # New test
+docs: description         # Documentation
 ```
 
 ---
 
-## ✅ Validação de Qualidade
+## ✅ Quality Validation
 
-### Antes de Commit
+### Before Commit
 
 ```bash
 npm run prettier     # Format
@@ -282,7 +282,7 @@ node test-profiles.js
 node test-integration.js
 ```
 
-### Antes de Deploy
+### Before Deploy
 
 ```bash
 npm install
@@ -295,38 +295,38 @@ npm run stop
 
 ---
 
-## 🔐 Segurança
+## 🔐 Security
 
-### Validações
+### Validations
 
 - ✅ Profile exists?
 - ✅ File path valid?
 - ✅ Command safe?
 - ✅ dryRunMode respected?
 
-### Produção
+### Production
 
-- ✅ `dryRunMode: true` para prod
-- ✅ Autenticação recomendada
-- ✅ Firewall para restringir acesso
-- ✅ Monitore logs regularmente
+- ✅ `dryRunMode: true` for production
+- ✅ Authentication recommended
+- ✅ Firewall to restrict access
+- ✅ Monitor logs regularly
 
 ---
 
-## 🚨 Falhas Conhecidas e Tratamento
+## 🚨 Known Failures and Handling
 
-### Profile não encontrado
+### Profile not found
 
 ```json
 {
-    "profile": "inexistente",
-    "result": "Usar config padrão ou erro"
+    "profile": "missing",
+    "result": "Use default config or error"
 }
 ```
 
-**Ação**: Log e notificar
+**Action**: Log and notify
 
-### Arquivo não mapeado
+### Unmapped file
 
 ```json
 {
@@ -335,9 +335,9 @@ npm run stop
 }
 ```
 
-**Ação**: Validar mapPaths, usar runInfo=1
+**Action**: Validate mapPaths, use runInfo=1
 
-### Editor não disponível
+### Editor unavailable
 
 ```json
 {
@@ -346,26 +346,26 @@ npm run stop
 }
 ```
 
-**Ação**: Verificar editor, validar comando
+**Action**: Check the editor, validate the command
 
 ---
 
 ## 📊 Health Checks
 
-### Status do Servidor
+### Server Status
 
 ```bash
 curl http://localhost:3001/
-# Deve retornar algo ou erro HTTP
+# Should return something or an HTTP error
 ```
 
-### Teste de Profile
+### Profile Test
 
 ```bash
 curl "http://localhost:3001/__open-in-editor?profile=test&file=/tmp/test.js:1:1&runInfo=1&dryRun=1" | jq
 ```
 
-### Teste de Comando
+### Command Test
 
 ```bash
 npm run status
@@ -373,9 +373,9 @@ npm run status
 
 ---
 
-## 🔄 Automação Exemplo
+## 🔄 Automation Example
 
-### Script de Deploy
+### Deploy Script
 
 ```bash
 #!/bin/bash
@@ -399,11 +399,11 @@ npm run logs | head -20
 echo "✅ Deploy complete"
 ```
 
-### Script de Rollback
+### Rollback Script
 
 ```bash
 #!/bin/bash
-# Volta para versão anterior
+# Roll back to the previous version
 git checkout HEAD~1 app.config.js
 pm2 restart all
 npm run logs
@@ -411,18 +411,18 @@ npm run logs
 
 ---
 
-## 📞 Eventos para Monitorar
+## 📞 Events to Monitor
 
-- ✅ Servidor inicializado
-- ✅ Perfil carregado
-- ✅ Comando executado
-- ✅ Erro em mapeamento
-- ✅ Erro em comando
-- ✅ dryRunMode ativado
+- ✅ Server initialized
+- ✅ Profile loaded
+- ✅ Command executed
+- ✅ Mapping error
+- ✅ Command error
+- ✅ dryRunMode activated
 
 ---
 
-## 🎯 Automação com GitHub Actions
+## 🎯 Automation with GitHub Actions
 
 ```yaml
 name: Deploy
@@ -445,24 +445,24 @@ jobs:
       - name: Deploy
         if: github.ref == 'refs/heads/main'
         run: |
-          # Deploy steps aqui
+          # Deploy steps here
           echo "Deploying..."
 ```
 
 ---
 
-## 📋 Checklist de Health
+## 📋 Health Checklist
 
-- [ ] Servidor respondendo?
-- [ ] Testes passando?
-- [ ] Configs sincronizadas (app.config.js ↔ app.config.demo.js)?
-- [ ] PM2 rodando (se daemon)?
-- [ ] Logs sem erros?
-- [ ] Perfis carregam?
-- [ ] Mapeamento funciona?
-- [ ] Editor disponível?
+- [ ] Is the server responding?
+- [ ] Are tests passing?
+- [ ] Are configs synchronized (`app.config.js` ↔ `app.config.demo.js`)?
+- [ ] Is PM2 running (if daemonized)?
+- [ ] Are logs free of errors?
+- [ ] Do profiles load?
+- [ ] Does path mapping work?
+- [ ] Is the editor available?
 
-Se qualquer item ❌: investigar logs e corrigir antes de produção.
+If any item is ❌: investigate logs and fix before production.
 
 ---
 
@@ -481,4 +481,4 @@ Se qualquer item ❌: investigar logs e corrigir antes de produção.
 
 ---
 
-Bom desenvolvimento! 🤖
+Good development!

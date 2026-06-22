@@ -1,396 +1,396 @@
-# CLAUDE.md - Instruções para Claude/AI
+# CLAUDE.md - Instructions for Claude/AI
 
-Instruções específicas para assistentes de IA (Claude, etc) trabalhando neste projeto.
-
----
-
-## 🎯 Objetivo do Projeto
-
-Servidor HTTP que abre arquivos no editor de código a partir de URLs, com suporte a perfis de projeto e mapeamento automático de caminhos local/remoto.
+Specific instructions for AI assistants (Claude, etc.) working on this project.
 
 ---
 
-## 📚 Documentação Chave
+## 🎯 Project Goal
 
-Consulte estes arquivos PRIMEIRO antes de fazer qualquer mudança:
-
-1. **[README.md](./README.md)** - Overview e instruções de uso
-2. **[GUIDE_PROFILES.md](./GUIDE_PROFILES.md)** - Guia prático com exemplos
-3. **[PROFILE_ANALYSIS.md](./PROFILE_ANALYSIS.md)** - Análise técnica detalhada
-4. **[AGENTS.md](./AGENTS.md)** - Instruções para automação/agentes
+HTTP server that opens files in the code editor from URLs, with support for project profiles and automatic local/remote path mapping.
 
 ---
 
-## 🛠️ Stack Técnico
+## 📚 Key Documentation
 
-- **Linguagem**: JavaScript (Node.js ES modules)
+Read these files FIRST before making any changes:
+
+1. **[README.md](./README.md)** - Overview and usage instructions
+2. **[GUIDE_PROFILES.md](./GUIDE_PROFILES.md)** - Practical guide with examples
+3. **[PROFILE_ANALYSIS.md](./PROFILE_ANALYSIS.md)** - Detailed technical analysis
+4. **[AGENTS.md](./AGENTS.md)** - Instructions for automation/agents
+
+---
+
+## 🛠️ Technical Stack
+
+- **Language**: JavaScript (Node.js ES modules)
 - **Runtime**: Node.js 18+
-- **Gerenciador**: PM2 (para modo daemon)
-- **Configuração**: `app.config.js` (dinâmico)
-- **Testes**: Unitários + integração
+- **Process Manager**: PM2 (for daemon mode)
+- **Configuration**: `app.config.js` (dynamic)
+- **Tests**: Unit + integration
 
 ---
 
-## 📋 Estrutura de Código Principal
+## 📋 Main Code Structure
 
 ### `open-in-editor-server.js`
 
-Arquivo principal com:
-- Servidor HTTP via `http` nativo
-- Leitura de configuração dinâmica
-- Parser de URL e parâmetros
-- Mapeamento de caminhos
-- Execução de comandos
-- Tratamento de erros
+Main file with:
+- HTTP server via native `http`
+- Dynamic config loading
+- URL and parameter parser
+- Path mapping
+- Command execution
+- Error handling
 
-**Funções chave**:
-- `getFinalConfig()` - Carrega config
-- `getProfile(name)` - Obtém perfil
-- `getOpenCmd(profile)` - Extrai comando
-- `sendResponse()` - Envia resposta HTTP
+**Key functions**:
+- `getFinalConfig()` - Loads config
+- `getProfile(name)` - Gets a profile
+- `getOpenCmd(profile)` - Extracts the command
+- `sendResponse()` - Sends the HTTP response
 
 ### `app.config.js`
 
-Configuração com perfis:
-- `profiles` - Object com configs por projeto
-- `defaultProfile` - Perfil padrão
-- `remapSplitStr` - Separador global
+Configuration with profiles:
+- `profiles` - Object with per-project configs
+- `defaultProfile` - Default profile
+- `remapSplitStr` - Global separator
 
-**⚠️ NUNCA commitar `app.config.js`** - Use `app.config.demo.js` como exemplo.
+**⚠️ NEVER commit `app.config.js`** - Use `app.config.demo.js` as an example.
 
 ### `ecosystem.config.cjs`
 
-Configuração PM2 para modo daemon:
-- App script e variáveis de ambiente
-- Desenvolvimento vs produção
-- Deploy settings
+PM2 configuration for daemon mode:
+- App script and environment variables
+- Development vs production
+- Deployment settings
 
 ### `package.json`
 
-Scripts NPM:
-- `npm run dev` - Desenvolvimento com watch
-- `npm run start` - Daemon modo desenvolvimento
-- `npm run logs` - Ver logs
+NPM scripts:
+- `npm run dev` - Development with watch
+- `npm run start` - Development daemon mode
+- `npm run logs` - View logs
 - Etc.
 
 ---
 
-## 🧪 Testes
+## 🧪 Tests
 
-### Testes Unitários (`test-profiles.js`)
+### Unit Tests (`test-profiles.js`)
 
 ```bash
 node test-profiles.js
 ```
 
-Valida:
-- Estrutura de cada perfil
-- Função `getOpenCmd()` com diferentes formatos
-- `mapPaths` válidos
-- `options` presentes
+Validates:
+- Structure of each profile
+- `getOpenCmd()` with different formats
+- Valid `mapPaths`
+- Presence of `options`
 
-**Resultado esperado**: ✅ 20/20 testes passando
+**Expected result**: ✅ 20/20 tests passing
 
-### Testes de Integração (`test-integration.js`)
+### Integration Tests (`test-integration.js`)
 
 ```bash
 node test-integration.js
 ```
 
-Simula requisições HTTP reais com:
-- Aplicação de perfil
-- Mapeamento de caminho
-- Modo dry-run
-- Fallback para padrão
+Simulates real HTTP requests with:
+- Profile application
+- Path mapping
+- Dry-run mode
+- Fallback to default
 
-**Resultado esperado**: ✅ 6/6 cenários funcionais
+**Expected result**: ✅ 6/6 scenarios working
 
 ---
 
-## 🔄 Fluxo de Requisição
+## 🔄 Request Flow
 
 ```
-URL com parâmetros
+URL with parameters
     ↓
 Parse profile (?profile=...)
     ↓
-Carregar config de app.config.js
+Load config from app.config.js
     ↓
-Obter dados do perfil
+Get profile data
     ↓
-Extrair command via getOpenCmd()
+Extract command via getOpenCmd()
     ↓
-Mapear caminho (remoto → local)
+Map path (remote → local)
     ↓
-Aplicar options (dryRunMode, etc)
+Apply options (dryRunMode, etc)
     ↓
-Executar comando via exec()
+Execute command via exec()
     ↓
-Retornar resultado como JSON
+Return result as JSON
 ```
 
 ---
 
-## 🐛 Bugs Conhecidos / Corrigidos
+## 🐛 Known / Fixed Bugs
 
-### ✅ Bug Corrigido: Campo `_command`
+### ✅ Fixed Bug: `_command` Field
 
-**Localização**: `open-in-editor-server.js:149`
+**Location**: `open-in-editor-server.js:149`
 
-**Problema**: Tentava acessar `_openCmd?._command` (incorreto)
+**Problem**: Tried to access `_openCmd?._command` (incorrect)
 
-**Solução**: Mudou para `_openCmd?.command` (correto)
+**Solution**: Changed to `_openCmd?.command` (correct)
 
 ```javascript
-// ❌ ANTES
+// ❌ BEFORE
 let _command = ifStringOr(_openCmd?._command, '')?.trim();
 
-// ✅ DEPOIS
+// ✅ AFTER
 let _command = ifStringOr(_openCmd?.command, '')?.trim();
 ```
 
 ---
 
-## 📝 Regras de Desenvolvimento
+## 📝 Development Rules
 
 ### Commits
 
-- ✅ Escrever commits como se fossem do usuário (sem menção a Claude)
-- ✅ Incluir tipo: feat, fix, refactor, test, docs
-- ✅ Ser descritivo mas conciso
-- ✅ Atualizar `app.config.demo.js` se alterar `app.config.js`
+- ✅ Write commits as if they were written by the user (no mention of Claude)
+- ✅ Include a type: feat, fix, refactor, test, docs
+- ✅ Be descriptive but concise
+- ✅ Update `app.config.demo.js` if `app.config.js` changes
 
-Exemplo:
+Example:
 ```
 fix: correct field access in getOpenCmd function
 ```
 
-### Testes
+### Tests
 
-- ✅ SEMPRE rodar testes antes de commitar
-- ✅ Testes devem passar 100%
-- ✅ Adicionar novos testes para novas features
-- ✅ Testar com `&runInfo=1&dryRun=1` para segurança
+- ✅ ALWAYS run tests before committing
+- ✅ Tests must pass 100%
+- ✅ Add new tests for new features
+- ✅ Test with `&runInfo=1&dryRun=1` for safety
 
-### Configuração
+### Configuration
 
-- ✅ **NUNCA** commitar `app.config.js`
-- ✅ Sempre atualizar `app.config.demo.js` em paralelo
-- ✅ Documentar mudanças em `PROFILE_ANALYSIS.md` se relevante
-- ✅ Validar em `test-profiles.js` antes
+- ✅ **NEVER** commit `app.config.js`
+- ✅ Always update `app.config.demo.js` in parallel
+- ✅ Document changes in `PROFILE_ANALYSIS.md` if relevant
+- ✅ Validate in `test-profiles.js` first
 
-### Documentação
+### Documentation
 
-- ✅ Manter README.md atualizado
-- ✅ Adicionar exemplos em GUIDE_PROFILES.md
-- ✅ Documentar decisões técnicas em PROFILE_ANALYSIS.md
-- ✅ Usar comentários em código apenas para lógica não óbvia
+- ✅ Keep `README.md` updated
+- ✅ Add examples to `GUIDE_PROFILES.md`
+- ✅ Document technical decisions in `PROFILE_ANALYSIS.md`
+- ✅ Use code comments only for non-obvious logic
 
 ---
 
-## 🚀 Workflow de Desenvolvimento
+## 🚀 Development Workflow
 
-### 1. Entender o Contexto
+### 1. Understand the Context
 
-- [ ] Ler README.md
-- [ ] Executar `node test-profiles.js`
-- [ ] Executar `node test-integration.js`
-- [ ] Entender estrutura atual
+- [ ] Read `README.md`
+- [ ] Run `node test-profiles.js`
+- [ ] Run `node test-integration.js`
+- [ ] Understand the current structure
 
-### 2. Fazer Mudança
+### 2. Make the Change
 
-- [ ] Fazer alteração no código
-- [ ] Adicionar testes se necessário
-- [ ] Validar com `&runInfo=1&dryRun=1`
-- [ ] Verificar se não quebrou testes existentes
+- [ ] Change the code
+- [ ] Add tests if needed
+- [ ] Validate with `&runInfo=1&dryRun=1`
+- [ ] Verify existing tests were not broken
 
-### 3. Documentar
+### 3. Document
 
-- [ ] Atualizar comentários se necessário
-- [ ] Adicionar exemplo em GUIDE_PROFILES.md se relevante
-- [ ] Atualizar PROFILE_ANALYSIS.md se aplicável
-- [ ] Atualizar app.config.demo.js em paralelo
+- [ ] Update comments if needed
+- [ ] Add an example in `GUIDE_PROFILES.md` if relevant
+- [ ] Update `PROFILE_ANALYSIS.md` if applicable
+- [ ] Update `app.config.demo.js` in parallel
 
-### 4. Testar Completo
+### 4. Full Test
 
-- [ ] `npm run prettier` (formatar)
-- [ ] `node test-profiles.js` (unitários)
-- [ ] `node test-integration.js` (integração)
-- [ ] Testar manualmente com `&runInfo=1&dryRun=1`
+- [ ] `npm run prettier` (format)
+- [ ] `node test-profiles.js` (unit)
+- [ ] `node test-integration.js` (integration)
+- [ ] Manual test with `&runInfo=1&dryRun=1`
 
-### 5. Commitar
+### 5. Commit
 
 - [ ] `git add .`
 - [ ] `git commit -m "type: description"`
-- [ ] Commit sem menção a Claude
+- [ ] Commit without mentioning Claude
 
 ---
 
-## ✨ Checklist para Mudanças
+## ✨ Change Checklist
 
-Antes de commitar QUALQUER mudança, responda:
+Before committing ANY change, answer:
 
-- ✅ Testes passam? (`node test-profiles.js` + `test-integration.js`)
-- ✅ Código está formatado? (`npm run prettier`)
-- ✅ Documentação está atualizada? (README, GUIDE, ANALYSIS)
-- ✅ Se alterei app.config.js, atualizei app.config.demo.js?
-- ✅ Commit message não menciona Claude?
-- ✅ Testei com `&runInfo=1&dryRun=1`?
+- ✅ Do tests pass? (`node test-profiles.js` + `test-integration.js`)
+- ✅ Is the code formatted? (`npm run prettier`)
+- ✅ Is the documentation updated? (README, GUIDE, ANALYSIS)
+- ✅ If I changed `app.config.js`, did I update `app.config.demo.js`?
+- ✅ Does the commit message avoid mentioning Claude?
+- ✅ Did I test with `&runInfo=1&dryRun=1`?
 
-Se NÃO para qualquer item acima: **NÃO COMMITAR**
+If the answer is NO for any item above: **DO NOT COMMIT**
 
 ---
 
-## 🔍 Debug e Investigação
+## 🔍 Debugging and Investigation
 
-### Executar com Debug
+### Run with Debug
 
 ```bash
-# Ver informações de execução
+# See execution information
 URL?profile=...&file=...&runInfo=1&dryRun=1
 ```
 
-Isso retorna JSON com:
-- Comando que seria executado
-- Caminho mapeado
-- Todas as configurações aplicadas
-- Mensagens de erro
+This returns JSON with:
+- Command that would be executed
+- Mapped path
+- All applied configuration
+- Error messages
 
-### Ver Logs do Servidor
+### View Server Logs
 
 ```bash
 npm run logs
 ```
 
-### Testar Comando Manualmente
+### Test Command Manually
 
 ```bash
-# Ver o comando que seria executado
+# See the command that would be executed
 URL?profile=...&file=...&runInfo=1&dryRun=1
 
-# Depois execute manualmente:
+# Then run manually:
 code -g "/path/to/file.js:10:5"
 ```
 
 ---
 
-## 🎯 Issues Comuns e Soluções
+## 🎯 Common Issues and Solutions
 
-### Perfil não carrega
+### Profile Does Not Load
 
-1. Verifique que `app.config.js` existe
-2. Execute `node -e "import('./app.config.js').then(c => console.log(c.profiles))"`
-3. Use `&runInfo=1` para ver qual perfil foi usado
+1. Check that `app.config.js` exists
+2. Run `node -e "import('./app.config.js').then(c => console.log(c.profiles))"`
+3. Use `&runInfo=1` to see which profile was used
 
-### Caminho não mapeia
+### Path Does Not Map
 
-1. Verifique `mapPaths` em `app.config.js`
-2. Use `&runInfo=1` para ver mapeamento real
-3. Certifique que local/remote correspondem ao arquivo
+1. Check `mapPaths` in `app.config.js`
+2. Use `&runInfo=1` to see the actual mapping
+3. Ensure local/remote match the file
 
-### Comando não executa
+### Command Does Not Execute
 
-1. Teste comando manualmente: `code -g "/path/to/file.js:10:5"`
-2. Verifique que editor está instalado
-3. Use `&runInfo=1` para ver comando gerado
+1. Test the command manually: `code -g "/path/to/file.js:10:5"`
+2. Verify that the editor is installed
+3. Use `&runInfo=1` to see the generated command
 
 ---
 
-## 🤔 Decisões de Design
+## 🤔 Design Decisions
 
-### Por que PM2?
+### Why PM2?
 
-- Modo daemon fácil
-- Auto-restart em crash
-- Persistência após reboot
+- Easy daemon mode
+- Auto-restart on crash
+- Persistence after reboot
 - Log management
-- Alternativa: systemd, docker
+- Alternative: systemd, Docker
 
-### Por que app.config.js dinâmico?
+### Why Dynamic `app.config.js`?
 
-- Permite múltiplos perfis
-- Sem hardcode de configs
-- Fácil de alterar sem rebuildar
-- Não precisa de reinicialização após mudança (recarrega)
+- Allows multiple profiles
+- No hardcoded config
+- Easy to change without rebuilding
+- No restart needed after changes (reloads)
 
-### Por que URL parameters têm precedência?
+### Why Do URL Parameters Take Precedence?
 
-- Máxima flexibilidade
-- Pode sobrescrever perfil quando necessário
-- Não quebra workflow existente
+- Maximum flexibility
+- Can override the profile when needed
+- Does not break the existing workflow
 
-### Por que dryRunMode força execução?
+### Why Does dryRunMode Force Execution?
 
-- Proteção para produção
-- Evita acidentes
-- Quando habilitado no perfil, é intencional
+- Protection for production
+- Prevents accidents
+- When enabled in the profile, it is intentional
 
 ---
 
-## 📊 Métricas e Performance
+## 📊 Metrics and Performance
 
 - **Startup**: ~100ms
-- **Request handling**: ~5-50ms (depende do mapeamento)
-- **Configuração loading**: ~10-20ms (primeira vez)
+- **Request handling**: ~5-50ms (depends on mapping)
+- **Configuration loading**: ~10-20ms (first time)
 
 ---
 
-## 🔐 Considerações de Segurança
+## 🔐 Security Considerations
 
-- ✅ Input validation em comandos
-- ✅ Proteção de dryRunMode em perfis sensíveis
-- ✅ Tratamento de erros robusto
-- ✅ Log de todas as execuções (quando runInfo=1)
+- ✅ Input validation in commands
+- ✅ Protection of `dryRunMode` in sensitive profiles
+- ✅ Robust error handling
+- ✅ Log all executions (when `runInfo=1`)
 
-Para produção:
-- Considere adicionar autenticação
-- Valide perfis contra whitelist
-- Monitore logs regularmente
-
----
-
-## 🚨 Antes de Fazer Mudanças Grandes
-
-Se vai fazer mudanças significativas:
-
-1. **Crie branch feature**: `git checkout -b feature/description`
-2. **Discuta arquitetura**: Veja PROFILE_ANALYSIS.md
-3. **Rodar testes completos**: `test-profiles.js` + `test-integration.js`
-4. **Documenta decisão**: Adicione comentário em PROFILE_ANALYSIS.md
-5. **Crie testes novos**: Para validar nova funcionalidade
+For production:
+- Consider adding authentication
+- Validate profiles against a whitelist
+- Monitor logs regularly
 
 ---
 
-## ✅ Checklist Final
+## 🚨 Before Making Large Changes
 
-Sempre antes de finalizar uma tarefa:
+If you are going to make significant changes:
 
-- ✅ Li README.md?
-- ✅ Li GUIDE_PROFILES.md?
-- ✅ Li PROFILE_ANALYSIS.md?
-- ✅ Rodei testes?
-- ✅ Testei com &runInfo=1&dryRun=1?
-- ✅ Atualizei documentação?
-- ✅ Commit não menciona Claude?
-- ✅ app.config.demo.js foi atualizado?
-
-Se NÃO: volta e completa ANTES de considerar feito.
+1. **Create a feature branch**: `git checkout -b feature/description`
+2. **Discuss the architecture**: See `PROFILE_ANALYSIS.md`
+3. **Run full tests**: `test-profiles.js` + `test-integration.js`
+4. **Document the decision**: Add a comment in `PROFILE_ANALYSIS.md`
+5. **Create new tests**: To validate the new functionality
 
 ---
 
-## 📞 Suporte para Claude/AI
+## ✅ Final Checklist
 
-Quando trabalhando neste projeto:
+Always before finishing a task:
 
-1. SEMPRE ler os 3 arquivos de doc principais
-2. SEMPRE rodar testes antes de finalizar
-3. SEMPRE testar com ?runInfo=1&dryRun=1
-4. NUNCA commitar app.config.js
-5. NUNCA mencionar Claude em commits
-6. NUNCA pular documentação
+- ✅ Did I read `README.md`?
+- ✅ Did I read `GUIDE_PROFILES.md`?
+- ✅ Did I read `PROFILE_ANALYSIS.md`?
+- ✅ Did I run tests?
+- ✅ Did I test with `&runInfo=1&dryRun=1`?
+- ✅ Did I update the documentation?
+- ✅ Does the commit avoid mentioning Claude?
+- ✅ Was `app.config.demo.js` updated?
 
-Se não tiver certeza: **pergunte ao usuário antes de mudar**.
+If NO: go back and complete it BEFORE considering it done.
 
 ---
 
-Boa desenvolvimento! 🚀
+## 📞 Support for Claude/AI
+
+When working on this project:
+
+1. ALWAYS read the 3 main documentation files
+2. ALWAYS run tests before finishing
+3. ALWAYS test with `?runInfo=1&dryRun=1`
+4. NEVER commit `app.config.js`
+5. NEVER mention Claude in commits
+6. NEVER skip documentation
+
+If unsure: **ask the user before making changes**.
+
+---
+
+Good development! 🚀
