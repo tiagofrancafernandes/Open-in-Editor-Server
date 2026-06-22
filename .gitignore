@@ -2,6 +2,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,linux,node,nohup
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,linux,node,nohup
 
+*claude-session-id*
+*claude*session-id*
+
 ### Linux ###
 *~
 
@@ -196,3 +199,19 @@ app.config.ts
 !app.config.demo.js
 !app.config.demo.cjs
 !app.config.demo.ts
+
+*no*commit*
+*No*Commit*
+*NO*COMMIT*
+*.bak
+*.bkp.*
+*.bkp
+*.log
+*.swp
+*.out
+*.zip
+*.del
+*.del.*
+_ide_helper*
+*.localonly.*
+
