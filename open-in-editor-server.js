@@ -25,32 +25,32 @@ let demoLink = '';
 
 const REMAP_SPLIT_STR = process.env.REMAP_SPLIT_STR || ':'; // on windows, use '=>'
 
-const DEFAULT_LOCAL_ROOT_PATH = process.env.DEFAULT_LOCAL_ROOT_PATH || '/tmp/current-projet-root'
+const DEFAULT_LOCAL_ROOT_PATH = process.env.DEFAULT_LOCAL_ROOT_PATH || '/tmp/current-projet-root';
 const LOCAL_ROOT_PATH = process.env.LOCAL_ROOT_PATH || projectCwd;
 const REMOTE_ROOT_PATH = process.env.REMOTE_ROOT_PATH || projectCwd;
 
 // APP_BASE_PATH_REMOTE_MAP="[LOCAL_ROOT_PATH]:[REMOTE_ROOT_PATH]"
-const APP_BASE_PATH_REMOTE_MAP = process.env.APP_BASE_PATH_REMOTE_MAP ||
+const APP_BASE_PATH_REMOTE_MAP =
+    process.env.APP_BASE_PATH_REMOTE_MAP ||
     (LOCAL_ROOT_PATH && REMOTE_ROOT_PATH ? `${LOCAL_ROOT_PATH}${REMAP_SPLIT_STR}${REMOTE_ROOT_PATH}` : null);
 
 const LISTEN_HOST = process.env.LISTEN_HOST || '0.0.0.0';
 const LISTEN_PORT = Number(process.env.LISTEN_PORT || 0) || 3001;
 /*eslint-enable*/
 
-const __RUNTIME_ITEMS = {}
+const __RUNTIME_ITEMS = {};
 
 const callFn = (fn, args, callback = null) => {
     if (isUndefined(args)) {
-        args = []
+        args = [];
     }
 
     args = Array.isArray(args) ? args : [args];
 
     let output = null;
-    callback = typeof callback === 'function' ? callback : (error, output) => { }
+    callback = typeof callback === 'function' ? callback : (error, output) => {};
 
     try {
-
         if (typeof fn !== 'function') {
             return undefined;
         }
@@ -71,7 +71,7 @@ const callFn = (fn, args, callback = null) => {
 
         return undefined;
     }
-}
+};
 
 function isString(value) {
     return typeof value === 'string';
@@ -142,7 +142,7 @@ function runtimeItemGet(key, value, keep = true) {
 function isValidResponseObject(res) {
     try {
         if (!isObject(res)) {
-            return false
+            return false;
         }
 
         const keys = Object.keys(res || {});
@@ -163,9 +163,8 @@ function isValidResponseObject(res) {
             'setHeader',
             'outputData',
             'outputSize',
-        ]
-        return (res?.setHeader || res?.end)
-            && keys?.filter(key => toCheckKeys.includes(key))?.length >= 5;
+        ];
+        return (res?.setHeader || res?.end) && keys?.filter((key) => toCheckKeys.includes(key))?.length >= 5;
     } catch (error) {
         return false;
     }
@@ -193,8 +192,8 @@ function getResponseObject(res, keep = true) {
 
 function sendResponse(res, content, statusCode = null, headers = null) {
     if (!isValidResponseObject(res)) {
-        headers = isNull(headers) && isObject(statusCode) ? statusCode : (isObject(headers) ? headers : null)
-        statusCode = isNumeric(statusCode) ? statusCode : (isNumeric(content) ? content : 200);
+        headers = isNull(headers) && isObject(statusCode) ? statusCode : isObject(headers) ? headers : null;
+        statusCode = isNumeric(statusCode) ? statusCode : isNumeric(content) ? content : 200;
         content = res;
         res = isValidResponseObject(res) ? res : (__RUNTIME_ITEMS['res'] ?? __RUNTIME_ITEMS['res2'] ?? null);
     }
@@ -208,7 +207,6 @@ function sendResponse(res, content, statusCode = null, headers = null) {
     }
 
     headers = ifObjectOr(headers, res?.headers || res?.getHeaders() || {});
-
 
     for (let [key, value] of Object.entries(headers)) {
         if (isString(key) && isString(value) && key.trim() && value.trim()) {
@@ -233,8 +231,8 @@ function sendResponse(res, content, statusCode = null, headers = null) {
 
 function sendResponseAsJson(res, content = null, statusCode = null, headers = null) {
     if (!isValidResponseObject(res)) {
-        headers = isNull(headers) && isObject(statusCode) ? statusCode : (isObject(headers) ? headers : null)
-        statusCode = isNumeric(statusCode) ? statusCode : (isNumeric(content) ? content : 200);
+        headers = isNull(headers) && isObject(statusCode) ? statusCode : isObject(headers) ? headers : null;
+        statusCode = isNumeric(statusCode) ? statusCode : isNumeric(content) ? content : 200;
         content = res;
         res = isValidResponseObject(res) ? res : (__RUNTIME_ITEMS['res'] ?? __RUNTIME_ITEMS['res2'] ?? null);
     }
@@ -255,7 +253,7 @@ function getDemoLink(extra = {}) {
     if (!url) {
         let req = getResponseObject(extra?.req, true) || {};
         let reqBaseHost = req?.headers?.host || 'localhost';
-        url = new URL(req?.url, `http://${reqBaseHost}`)
+        url = new URL(req?.url, `http://${reqBaseHost}`);
     }
 
     /**  @type {URLSearchParams} */
@@ -296,7 +294,7 @@ function getRunInfo(extra = {}) {
             'process.env.LISTEN_PORT': process.env?.LISTEN_PORT || 'not-set',
         },
         ...extra,
-    }
+    };
 }
 
 const server = http.createServer((req, res) => {
@@ -319,7 +317,9 @@ const server = http.createServer((req, res) => {
         const editor = urlParams.get('editor') || null;
         openCmd = urlParams.get('open_cmd') || openCmd;
         const file = urlParams.get('file');
-        dryRunMode = ['on', 'true', '1', 'yes'].includes(urlParams.get('dry_run') || urlParams.get('dryRun') || urlParams.get('dryRunMode'));
+        dryRunMode = ['on', 'true', '1', 'yes'].includes(
+            urlParams.get('dry_run') || urlParams.get('dryRun') || urlParams.get('dryRunMode')
+        );
 
         if (['on', 'true', '1', 'yes'].includes(urlParams.get('open'))) {
             dryRunMode = true;
@@ -331,26 +331,29 @@ const server = http.createServer((req, res) => {
 
         const projectRoot = String(urlParams.get('project_root') || '').trim() || null;
 
-        const appBasePathRemoteMap = callFn((value) => {
-            value = typeof value === 'string' ? value : '';
+        const appBasePathRemoteMap = callFn(
+            (value) => {
+                value = typeof value === 'string' ? value : '';
 
-            if (!value.includes(REMAP_SPLIT_STR) || ['undefined', 'null'].includes(value)) {
+                if (!value.includes(REMAP_SPLIT_STR) || ['undefined', 'null'].includes(value)) {
+                    return {
+                        local: '',
+                        remote: '',
+                    };
+                }
+
+                let values = value.split(REMAP_SPLIT_STR);
+
+                let local = values[0] ?? values[1] ?? '';
+                let remote = values[1] ?? values[0] ?? '';
+
                 return {
-                    local: '',
-                    remote: '',
+                    local: String(local || '')?.replace(/^(\/){2,}/g, ''),
+                    remote: String(remote || '')?.replace(/^(\/){2,}/g, ''),
                 };
-            }
-
-            let values = value.split(REMAP_SPLIT_STR);
-
-            let local = values[0] ?? values[1] ?? '';
-            let remote = values[1] ?? values[0] ?? '';
-
-            return {
-                local: String(local || '')?.replace(/^(\/){2,}/g, ''),
-                remote: String(remote || '')?.replace(/^(\/){2,}/g, ''),
-            }
-        }, [urlParams.get('app_base_path_remote_map') || APP_BASE_PATH_REMOTE_MAP || null]);
+            },
+            [urlParams.get('app_base_path_remote_map') || APP_BASE_PATH_REMOTE_MAP || null]
+        );
 
         if (['auto', '', 'auto', 'url', 'query'].includes(FRONTEND_PROJECT_ROOT)) {
             FRONTEND_PROJECT_ROOT = projectRoot || '';
@@ -373,7 +376,7 @@ const server = http.createServer((req, res) => {
                 .join('/');
 
             if (appBasePathRemoteMap?.remote && appBasePathRemoteMap?.local) {
-                value = value.replace(appBasePathRemoteMap?.remote || '', appBasePathRemoteMap?.local || '')
+                value = value.replace(appBasePathRemoteMap?.remote || '', appBasePathRemoteMap?.local || '');
             }
 
             if (['null', 'undefined'].includes(value)) {
@@ -386,22 +389,24 @@ const server = http.createServer((req, res) => {
         const cmd = (dryRunMode ? 'echo ' : '') + `${openCmd} "${mappedPath}:${line}:${col}"`;
         let isInvalidFile = !file || cmd.includes('null/null') || cmd.includes(' ":');
 
-        let runInfo = ['on', 'true', '1', 'yes', ''].includes(urlParams.get('runInfo') ?? urlParams.get('debug')) ? getRunInfo({
-            method: req?.method,
-            url,
-            file,
-            isInvalidFile,
-            uri,
-            urlPath,
-            editor,
-            urlParams,
-            dryRunMode,
-            projectRoot,
-            appBasePathRemoteMap,
-            FRONTEND_PROJECT_ROOT,
-            mappedPath,
-            cmd,
-        }) : undefined;
+        let runInfo = ['on', 'true', '1', 'yes', ''].includes(urlParams.get('runInfo') ?? urlParams.get('debug'))
+            ? getRunInfo({
+                  method: req?.method,
+                  url,
+                  file,
+                  isInvalidFile,
+                  uri,
+                  urlPath,
+                  editor,
+                  urlParams,
+                  dryRunMode,
+                  projectRoot,
+                  appBasePathRemoteMap,
+                  FRONTEND_PROJECT_ROOT,
+                  mappedPath,
+                  cmd,
+              })
+            : undefined;
 
         if (isInvalidFile) {
             res.statusCode = 400;
@@ -415,7 +420,7 @@ const server = http.createServer((req, res) => {
                 runInfo,
                 try: {
                     runInfo: 1,
-                }
+                },
             });
         }
 
@@ -423,15 +428,13 @@ const server = http.createServer((req, res) => {
             if (err) {
                 console.error(err);
                 res.statusCode = 500;
-                return sendResponseAsJson(
-                    {
-                        message: 'Error opening editor',
-                        statusCode: 500,
-                        error: err?.message,
-                        'res.statusCode': res.statusCode,
-                        runInfo,
-                    }
-                );
+                return sendResponseAsJson({
+                    message: 'Error opening editor',
+                    statusCode: 500,
+                    error: err?.message,
+                    'res.statusCode': res.statusCode,
+                    runInfo,
+                });
             }
 
             sendResponseAsJson({
@@ -445,7 +448,7 @@ const server = http.createServer((req, res) => {
                 },
                 openInfo: {
                     FRONTEND_PROJECT_ROOT,
-                    'FRONTEND_PROJECT_ROOT_': FRONTEND_PROJECT_ROOT || 'sss',
+                    FRONTEND_PROJECT_ROOT_: FRONTEND_PROJECT_ROOT || 'sss',
                     EDITOR_OPEN_CMD,
                     openCmd,
                 },
