@@ -1,0 +1,15 @@
+*.md
+no-commit
+vendor
+node_modules
+storage
+build
+dist
+.output
+.vite
+.cache
+.*/
+*.env
+.env*
+
+tsconfig.tsbuildinfo

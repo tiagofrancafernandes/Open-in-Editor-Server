@@ -1,0 +1,15 @@
+{
+    "type": "module",
+    "scripts": {
+        "start": "bash ./start.sh",
+        "up": "npm run start",
+        "dev:try": "npm run start",
+        "prettier": "prettier --config ./.prettierrc --write ."
+    },
+    "devDependencies": {
+        "prettier": "^3.8.4"
+    },
+    "dependencies": {
+        "pm2": "^7.0.1"
+    }
+}
