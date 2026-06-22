@@ -45,10 +45,9 @@ async function getFinalConfig() {
             profiles: fileConfig.profiles ?? defaultConfig.profiles,
             remapSplitStr: fileConfig.remapSplitStr ?? defaultConfig.remapSplitStr,
         };
-
     } catch (error) {
         // 5. If the file is missing, silently return the defaults
-        console.log("config.js not found. Proceeding with default values.");
+        console.log('config.js not found. Proceeding with default values.');
         return defaultConfig;
     }
 }
@@ -82,7 +81,6 @@ const LISTEN_PORT = Number(process.env.LISTEN_PORT || 0) || 3001;
 
 const __RUNTIME_ITEMS = {};
 
-
 /**
  *
  * @param {?String} key
@@ -93,19 +91,19 @@ const __RUNTIME_ITEMS = {};
 function getConfig(key = null, defaultValue = null) {
     try {
         if (!isObject(CONFIG)) {
-            return null
+            return null;
         }
 
         if (isNull(key)) {
-            return CONFIG
+            return CONFIG;
         }
 
         if (!isString(key)) {
-            return defaultValue
+            return defaultValue;
         }
 
         if (key in CONFIG) {
-            return CONFIG[key]
+            return CONFIG[key];
         }
 
         return defaultValue;
@@ -126,15 +124,15 @@ function getProfile(profile = null, defaultValue = null) {
         const profiles = ifObjectOr(getConfig('profiles'), {});
 
         if (!isObject(profiles)) {
-            return ifObjectOr(defaultValue, {})
+            return ifObjectOr(defaultValue, {});
         }
 
         if (!isString(profile)) {
-            return ifObjectOr(defaultValue, {})
+            return ifObjectOr(defaultValue, {});
         }
 
         if (profile in profiles) {
-            return profiles[profile]
+            return profiles[profile];
         }
 
         return ifObjectOr(defaultValue, {});
@@ -146,15 +144,19 @@ function getProfile(profile = null, defaultValue = null) {
 function getOpenCmd(profile = null, defaultValue = null) {
     profile = ifObjectOr(profile, {});
     let _openCmd = ifObjectOr(profile?.open_cmd, {});
-    let _command = ifStringOr(_openCmd?._command, '')?.trim();
+    let _command = ifStringOr(_openCmd?.command, '')?.trim();
 
     if (!_command) {
         return ifStringOr(EDITOR_OPEN_CMD, defaultValue) || defaultValue;
     }
 
-    let _args = ifArrayOr(_openCmd?.args, [])?.filter(isString)?.map(v => v?.trim())?.join(' ') || '';
+    let _args =
+        ifArrayOr(_openCmd?.args, [])
+            ?.filter(isString)
+            ?.map((v) => v?.trim())
+            ?.join(' ') || '';
 
-    return [_command, _args].join(' ') || defaultValue;
+    return [_command, _args].filter((s) => s.trim()).join(' ') || defaultValue;
 }
 
 console.log("Active Split String: '%s'", getConfig().remapSplitStr);
@@ -167,7 +169,7 @@ const callFn = (fn, args, callback = null) => {
     args = Array.isArray(args) ? args : [args];
 
     let output = null;
-    callback = typeof callback === 'function' ? callback : (error, output) => { };
+    callback = typeof callback === 'function' ? callback : (error, output) => {};
 
     try {
         if (typeof fn !== 'function') {
@@ -473,13 +475,13 @@ const server = http.createServer((req, res) => {
                 let mapSplitStr = ifStringOr(ifObjectOr(profileData?.options)?.remapSplitStr, null) || REMAP_SPLIT_STR;
 
                 if (
-                    ifStringOr(profileMapPaths?.local, null)?.trim()
-                    && ifStringOr(profileMapPaths?.remote, null)?.trim()
+                    ifStringOr(profileMapPaths?.local, null)?.trim() &&
+                    ifStringOr(profileMapPaths?.remote, null)?.trim()
                 ) {
                     return {
                         local: profileMapPaths?.local,
                         remote: profileMapPaths?.remote,
-                    }
+                    };
                 }
 
                 if (!value.includes(mapSplitStr) || ['undefined', 'null'].includes(value)) {
@@ -538,23 +540,23 @@ const server = http.createServer((req, res) => {
 
         let runInfo = ['on', 'true', '1', 'yes', ''].includes(urlParams.get('runInfo') ?? urlParams.get('debug'))
             ? getRunInfo({
-                method: req?.method,
-                url,
-                file,
-                isInvalidFile,
-                uri,
-                urlPath,
-                editor,
-                urlParams,
-                dryRunMode,
-                projectRoot,
-                appBasePathRemoteMap,
-                FRONTEND_PROJECT_ROOT,
-                mappedPath,
-                cmd,
-                configPath,
-                config: getConfig(),
-            })
+                  method: req?.method,
+                  url,
+                  file,
+                  isInvalidFile,
+                  uri,
+                  urlPath,
+                  editor,
+                  urlParams,
+                  dryRunMode,
+                  projectRoot,
+                  appBasePathRemoteMap,
+                  FRONTEND_PROJECT_ROOT,
+                  mappedPath,
+                  cmd,
+                  configPath,
+                  config: getConfig(),
+              })
             : undefined;
 
         if (isInvalidFile) {

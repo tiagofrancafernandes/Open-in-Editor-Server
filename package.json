@@ -1,9 +1,15 @@
 {
     "type": "module",
     "scripts": {
-        "start": "bash ./start.sh",
+        "start": "pm2 start ecosystem.config.cjs --env development",
+        "start:prod": "pm2 start ecosystem.config.cjs --env production",
+        "dev": "node --watch open-in-editor-server.js",
+        "dev:no-watch": "node open-in-editor-server.js",
+        "stop": "pm2 stop all",
+        "restart": "pm2 restart all",
+        "logs": "pm2 logs open-in-editor-server",
+        "status": "pm2 status",
         "up": "npm run start",
-        "dev:try": "npm run start",
         "prettier": "prettier --config ./.prettierrc --write ."
     },
     "devDependencies": {
