@@ -1,4 +1,7 @@
 /**
+ * Demo links:
+ *
+ * ?runInfo=0&dryRun=1&file=%2Fmnt%2Fext4_arquivos%2Fprojects%2Fdev-tools%2Fopen-in-editor-server%2Fpackage.json%3A7%3A39&app_base_path_remote_map=%2Fmnt%2Fext4_arquivos%2Fprojects%2Fdev-tools%2Fopen-in-editor-server%3A%2Fmnt%2Fext4_arquivos%2Fprojects%2Fdev-tools%2Fopen-in-editor-server
  * ?file=%2Fapp%2Fapp%2Fcomponents%2Fsearch%2FVehicleFilters.vue%3A197%3A10
  * /__open-in-editor?file=%2Fapp%2Fapp%2Fcomponents%2Fsearch%2FVehicleFilters.vue%3A197%3A10
  * /_nuxt/__open-in-editor?file=%2Fapp%2Fapp%2Fcomponents%2Fsearch%2FVehicleFilters.vue%3A197%3A10
@@ -10,9 +13,80 @@ import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import http from 'node:http';
 import { exec } from 'node:child_process';
+import fs from 'node:fs/promises';
 
 const projectCwd = process.cwd();
 const packageJsonFile = path.resolve(process.cwd(), './package.json') || './package.json';
+
+const CONFIG_PATH = process.env.CONFIG_PATH || null;
+const CONFIG_BASE_DIR = process.env.CONFIG_BASE_DIR || process.cwd();
+const configFileName = 'app.config.demo.js';
+const configPath = CONFIG_PATH || path.resolve(CONFIG_BASE_DIR, configFileName);
+
+async function getFinalConfig() {
+    // 1. Define your default values
+    const defaultConfig = {
+        profiles: {}, // fallback profiles
+        remapSplitStr: '-', // fallback separator
+        defaultProfile: null,
+    };
+
+    try {
+        // 2. Check if the optional config.js exists
+        await fs.access(configPath, fs.constants.F_OK);
+
+        // 3. Import the file dynamically
+        const fileConfig = await import(configPath);
+
+        // 4. Merge values: file values will overwrite defaults
+        return {
+            ...defaultConfig,
+            profiles: fileConfig.profiles ?? defaultConfig.profiles,
+            remapSplitStr: fileConfig.remapSplitStr ?? defaultConfig.remapSplitStr,
+        };
+
+    } catch (error) {
+        // 5. If the file is missing, silently return the defaults
+        console.log("config.js not found. Proceeding with default values.");
+        return defaultConfig;
+    }
+}
+
+// Example usage using Top-Level Await
+const CONFIG = await getFinalConfig();
+
+/**
+ *
+ * @param {?String} key
+ * @param {*} defaultValue
+ *
+ * @returns {any}
+ */
+function getConfig(key = null, defaultValue = null) {
+    try {
+        if (!isObject(CONFIG)) {
+            return null
+        }
+
+        if (isNull(key)) {
+            return CONFIG
+        }
+
+        if (!isString(key)) {
+            return defaultValue
+        }
+
+        if (key in CONFIG) {
+            return CONFIG[key]
+        }
+
+        return defaultValue;
+    } catch (error) {
+        return null;
+    }
+}
+
+console.log("Active Split String: '%s'", getConfig().remapSplitStr);
 
 // let FRONTEND_PROJECT_ROOT = process.env.FRONTEND_PROJECT_ROOT || process.cwd() + '/';
 // let FRONTEND_PROJECT_ROOT = process.env.FRONTEND_PROJECT_ROOT || path.resolve(process.cwd(), './') || '';
@@ -48,7 +122,7 @@ const callFn = (fn, args, callback = null) => {
     args = Array.isArray(args) ? args : [args];
 
     let output = null;
-    callback = typeof callback === 'function' ? callback : (error, output) => {};
+    callback = typeof callback === 'function' ? callback : (error, output) => { };
 
     try {
         if (typeof fn !== 'function') {
@@ -391,21 +465,23 @@ const server = http.createServer((req, res) => {
 
         let runInfo = ['on', 'true', '1', 'yes', ''].includes(urlParams.get('runInfo') ?? urlParams.get('debug'))
             ? getRunInfo({
-                  method: req?.method,
-                  url,
-                  file,
-                  isInvalidFile,
-                  uri,
-                  urlPath,
-                  editor,
-                  urlParams,
-                  dryRunMode,
-                  projectRoot,
-                  appBasePathRemoteMap,
-                  FRONTEND_PROJECT_ROOT,
-                  mappedPath,
-                  cmd,
-              })
+                method: req?.method,
+                url,
+                file,
+                isInvalidFile,
+                uri,
+                urlPath,
+                editor,
+                urlParams,
+                dryRunMode,
+                projectRoot,
+                appBasePathRemoteMap,
+                FRONTEND_PROJECT_ROOT,
+                mappedPath,
+                cmd,
+                configPath,
+                config,
+            })
             : undefined;
 
         if (isInvalidFile) {

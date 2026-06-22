@@ -188,3 +188,11 @@ nohup.out
 .output
 .dist
 .vite.*cache*
+
+app.config.js
+app.config.cjs
+app.config.ts
+
+!app.config.demo.js
+!app.config.demo.cjs
+!app.config.demo.ts
