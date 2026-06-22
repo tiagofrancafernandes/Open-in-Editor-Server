@@ -3,8 +3,8 @@
     "scripts": {
         "start": "./start.sh --env development",
         "start:prod": "./start.sh ecosystem.prod.cjs --env production",
-        "dev": "./start.sh --watch --env development",
-        "dev:no-watch": "./start.sh",
+        "dev": "./start.sh --env development",
+        "dev:watch": "./start.sh --watch --env development",
         "dev:node": "node open-in-editor-server.js",
         "serve:node": "node open-in-editor-server.js",
         "stop": "pm2 stop all",
@@ -12,6 +12,9 @@
         "logs": "pm2 logs open-in-editor-server",
         "status": "pm2 status",
         "up": "npm run start",
+        "pm2:startup": "pm2 startup systemd -u $(whoami) --hp $(pwd) && npm run pm2:save",
+        "pm2:save": "pm2 save",
+        "pm2:unstartup": "pm2 unstartup",
         "prettier": "prettier --config ./.prettierrc --write ."
     },
     "devDependencies": {

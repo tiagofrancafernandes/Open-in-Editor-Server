@@ -85,27 +85,33 @@ export const remapSplitStr = ':';  // use '=>' no Windows
 
 ## 🎬 Como Usar
 
-### Modo Desenvolvimento (com Watch)
+### Modo Desenvolvimento (sem Watch)
 
-Ideal para desenvolvimento local com recarregamento automático:
+Ideal para desenvolvimento local simples:
 
 ```bash
 npm run dev
 ```
 
 **Features**:
-- ✅ Recarrega automaticamente ao mudar código
-- ✅ Sem daemon (fácil de parar com Ctrl+C)
-- ✅ Saída de log em tempo real
-- ✅ Útil para debug
+- ✅ Roda como daemon em background
+- ✅ Sem recarregamento automático
+- ✅ Salva logs no PM2
+- ✅ Fácil de gerenciar
 
-### Modo Desenvolvimento (sem Watch)
+### Modo Desenvolvimento (com Watch/Reload)
 
-Se preferir sem recarregamento automático:
+Para desenvolvimento com recarregamento automático ao mudar código:
 
 ```bash
-npm run dev:no-watch
+npm run dev:watch
 ```
+
+**Features**:
+- ✅ Recarrega automaticamente ao mudar código
+- ✅ Roda como daemon em background
+- ✅ Útil para desenvolvimento ativo
+- ✅ Saída de log disponível com `npm run logs`
 
 ### Modo Produção (Daemon com PM2)
 
@@ -141,6 +147,61 @@ npm run restart
 # Parar
 npm run stop
 ```
+
+---
+
+## 🔄 Auto-iniciar com o Sistema
+
+Para que o servidor seja iniciado automaticamente quando o computador reinicia, configure o PM2:
+
+### Opção 1: Configurar Auto-startup (Recomendado)
+
+```bash
+# Configurar PM2 para iniciar com o sistema (systemd)
+npm run pm2:startup
+
+# Isso irá:
+# 1. Criar serviço systemd para PM2
+# 2. Salvar aplicações atuais
+# 3. Testar configuração
+```
+
+**Verificar se funcionou:**
+```bash
+# Ver se o serviço PM2 está habilitado
+systemctl status pm2-$(whoami)
+
+# Ver aplicações salvas
+pm2 list
+```
+
+### Opção 2: Remover Auto-startup
+
+Se precisar desabilitar:
+
+```bash
+npm run pm2:unstartup
+```
+
+### Como Funciona?
+
+1. `npm run pm2:startup` cria um serviço systemd que gerencia PM2
+2. PM2 carrega todas as aplicações salvas ao boot
+3. Se o servidor cair, PM2 o reinicia automaticamente
+4. Log disponível em: `/home/$(whoami)/.pm2/logs/`
+
+### ⚠️ Importante
+
+- **Antes de ativar**, certifique-se que:
+  - `npm run start` funciona sem erros
+  - Arquivo `app.config.js` está configurado corretamente
+  - Porta 3001 (ou a configurada) não está em uso
+
+- **Após ativar**, teste:
+  ```bash
+  npm run status
+  npm run logs
+  ```
 
 ---
 
