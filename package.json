@@ -1,10 +1,10 @@
 {
     "type": "module",
     "scripts": {
-        "start": "bash ./start.sh ecosystem.config.cjs --env development",
-        "start:prod": "bash ./start.sh ecosystem.config.cjs --env production",
-        "dev": "bash ./start.sh --env development --watch",
-        "dev:no-watch": "bash ./start.sh",
+        "start": "./start.sh --env development",
+        "start:prod": "./start.sh ecosystem.prod.cjs --env production",
+        "dev": "./start.sh --watch --env development",
+        "dev:no-watch": "./start.sh",
         "dev:node": "node open-in-editor-server.js",
         "serve:node": "node open-in-editor-server.js",
         "stop": "pm2 stop all",

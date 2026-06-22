@@ -1,39 +1,39 @@
 #!/bin/bash
 
-# # Specify an app name
-# --name <app_name>
+# Wrapper para iniciar servidor com PM2
+#
+# Uso: ./start.sh [config_file] [extra_flags]
+#
+# Exemplos:
+#   ./start.sh                                      # Usa ecosystem.config.cjs
+#   ./start.sh ecosystem.config.cjs --env development
+#   ./start.sh ecosystem.config.cjs --watch
+#   ./start.sh ecosystem.prod.cjs --env production
+#
+# PM2 Options (exemplos):
+#   --watch                   - Reinicia quando arquivos mudam
+#   --no-autorestart          - Desabilita auto-restart em crashes
+#   --restart-delay <ms>      - Delay entre restarts automáticos
+#   --env <env>               - Passa variável de ambiente
+#   --no-daemon               - Executa em foreground
 
-# # Watch and Restart app when files change
-# --watch
+set -e  # Exit on error
 
-# # Set memory threshold for app reload
-# --max-memory-restart <200MB>
+CONFIG_FILE="${1:-ecosystem.config.cjs}"
 
-# # Specify log file
-# --log <log_path>
+# Valida existência do arquivo de configuração
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "❌ Erro: Arquivo de configuração '$CONFIG_FILE' não encontrado"
+    exit 1
+fi
 
-# # Pass extra arguments to the script
-# -- arg1 arg2 arg3
+# Remove primeiro argumento para passar o resto
+shift 2>/dev/null || true
 
-# # Delay between automatic restarts
-# --restart-delay <delay in ms>
-
-# # Prefix logs with time
-# --time
-
-# # Do not auto restart app
-# --no-autorestart
-
-# # Specify cron for forced restart
-# --cron <cron_pattern>
-
-# # Attach to application log
-# --no-daemon
-
-### pm2 start ecosystem.config.js
-
-npx -y pm2 start ecosystem.config.cjs -- --name 'open-in-editor-server' \
+# Inicia com PM2
+npx pm2 start "$CONFIG_FILE" -- \
+    --name 'open-in-editor-server' \
     --ignore-watch="node_modules" \
     --port 1520 \
     --max-memory-restart 200MB \
-    --time $@
+    --time "$@"
