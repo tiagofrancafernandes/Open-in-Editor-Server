@@ -11,18 +11,27 @@ import { fileURLToPath, URL } from 'node:url';
 import http from 'node:http';
 import { exec } from 'node:child_process';
 
+const projectCwd = process.cwd();
+const packageJsonFile = path.resolve(process.cwd(), './package.json') || './package.json';
+
 // let FRONTEND_PROJECT_ROOT = process.env.FRONTEND_PROJECT_ROOT || process.cwd() + '/';
 // let FRONTEND_PROJECT_ROOT = process.env.FRONTEND_PROJECT_ROOT || path.resolve(process.cwd(), './') || '';
 let FRONTEND_PROJECT_ROOT = process.env.FRONTEND_PROJECT_ROOT || '';
 const EDITOR_OPEN_CMD = process.env.EDITOR_OPEN_CMD || 'code -g';
 let openCmd = EDITOR_OPEN_CMD;
 let dryRunMode = ['on', 'true', '1'].includes(process.env.DRY_RUN_MODE || false);
-const DEFAULT_LOCAL_ROOT_PATH = process.env.DEFAULT_LOCAL_ROOT_PATH || '/tmp/current-projet-root'
+
+let demoLink = '';
 
 const REMAP_SPLIT_STR = process.env.REMAP_SPLIT_STR || ':'; // on windows, use '=>'
 
-// APP_BASE_PATH_REMOTE_MAP="[LOCAL_PATH]:[REMOTE_PATH]"
-const APP_BASE_PATH_REMOTE_MAP = process.env.APP_BASE_PATH_REMOTE_MAP || null;
+const DEFAULT_LOCAL_ROOT_PATH = process.env.DEFAULT_LOCAL_ROOT_PATH || '/tmp/current-projet-root'
+const LOCAL_ROOT_PATH = process.env.LOCAL_ROOT_PATH || projectCwd;
+const REMOTE_ROOT_PATH = process.env.REMOTE_ROOT_PATH || projectCwd;
+
+// APP_BASE_PATH_REMOTE_MAP="[LOCAL_ROOT_PATH]:[REMOTE_ROOT_PATH]"
+const APP_BASE_PATH_REMOTE_MAP = process.env.APP_BASE_PATH_REMOTE_MAP ||
+    (LOCAL_ROOT_PATH && REMOTE_ROOT_PATH ? `${LOCAL_ROOT_PATH}${REMAP_SPLIT_STR}${REMOTE_ROOT_PATH}` : null);
 
 const LISTEN_HOST = process.env.LISTEN_HOST || '0.0.0.0';
 const LISTEN_PORT = Number(process.env.LISTEN_PORT || 0) || 3001;
@@ -237,6 +246,37 @@ function sendResponseAsJson(res, content = null, statusCode = null, headers = nu
     return sendResponse(res, JSON.stringify(content), statusCode, headers);
 }
 
+function getDemoLink(extra = {}) {
+    extra = ifObjectOr(extra, {});
+
+    /** @type {URL} */
+    let url = extra?.url && extra?.url instanceof URL ? new URL(extra?.url?.toString()) : null;
+
+    if (!url) {
+        let req = getResponseObject(extra?.req, true) || {};
+        let reqBaseHost = req?.headers?.host || 'localhost';
+        url = new URL(req?.url, `http://${reqBaseHost}`)
+    }
+
+    /**  @type {URLSearchParams} */
+    const urlParams = url.searchParams;
+
+    urlParams.set('dryRun', extra?.dryRun ?? 1);
+
+    // file=/my-remote-base/projects/dev-tools/open-in-editor-server/package.json%3A7%3A39
+    urlParams.set('file', `${packageJsonFile}:7:39`);
+
+    let localRootPath = LOCAL_ROOT_PATH;
+    let remoteRootPath = REMOTE_ROOT_PATH || projectCwd;
+
+    let appBasePathRemoteMap = APP_BASE_PATH_REMOTE_MAP || `${localRootPath}${REMAP_SPLIT_STR}${remoteRootPath}`;
+
+    urlParams.set('app_base_path_remote_map', appBasePathRemoteMap);
+    // app_base_path_remote_map=/mnt/ext4_arquivos/projects/dev-tools:/my-remote-base/projects/dev-tools
+
+    return url;
+}
+
 function getRunInfo(extra = {}) {
     extra = ifObjectOr(extra, {});
 
@@ -276,7 +316,6 @@ const server = http.createServer((req, res) => {
         openCmd = urlParams.get('open_cmd') || openCmd;
         const file = urlParams.get('file');
         dryRunMode = ['on', 'true', '1'].includes(urlParams.get('dry_run') || urlParams.get('dryRun') || urlParams.get('dryRunMode'));
-        dryRunMode = true;
         const projectRoot = String(urlParams.get('project_root') || '').trim() || null;
 
         const appBasePathRemoteMap = callFn((value) => {
@@ -291,12 +330,12 @@ const server = http.createServer((req, res) => {
 
             let values = value.split(REMAP_SPLIT_STR);
 
-            let local = values[0] ?? values[1] ?? DEFAULT_LOCAL_ROOT_PATH;
+            let local = values[0] ?? values[1] ?? '';
             let remote = values[1] ?? values[0] ?? '';
 
             return {
-                local: String (local || '')?.replace(/^(\/){2,}/g, ''),
-                remote: String (remote || '')?.replace(/^(\/){2,}/g, ''),
+                local: String(local || '')?.replace(/^(\/){2,}/g, ''),
+                remote: String(remote || '')?.replace(/^(\/){2,}/g, ''),
             }
         }, [urlParams.get('app_base_path_remote_map') || APP_BASE_PATH_REMOTE_MAP || null]);
 
@@ -311,7 +350,7 @@ const server = http.createServer((req, res) => {
         const mappedPath = callFn(() => {
             let value = [
                 FRONTEND_PROJECT_ROOT,
-                path
+                String(path || '')
                     .replace('/app', '')
                     .replace(/^(\/){2,}/g, '')
                     .trim(),
@@ -324,11 +363,15 @@ const server = http.createServer((req, res) => {
                 value = value.replace(appBasePathRemoteMap?.remote || '', appBasePathRemoteMap?.local || '')
             }
 
+            if (['null', 'undefined'].includes(value)) {
+                return '';
+            }
+
             return value;
         });
 
-        const cmd = (dryRunMode ? 'echo ' : ' ') + `${openCmd} "${mappedPath}:${line}:${col}"`;
-        let isInvalidFile = !file || cmd.includes('null/null');
+        const cmd = (dryRunMode ? 'echo ' : '') + `${openCmd} "${mappedPath}:${line}:${col}"`;
+        let isInvalidFile = !file || cmd.includes('null/null') || cmd.includes(' ":');
 
         let runInfo = getRunInfo({
             method: req?.method,
@@ -351,6 +394,10 @@ const server = http.createServer((req, res) => {
             res.statusCode = 400;
             return sendResponseAsJson({
                 message: 'Invalid file or missing file param',
+                demoLinks: {
+                    dryRunMode: getDemoLink({ url, dryRun: 1 }),
+                    open: getDemoLink({ url, dryRun: false }),
+                },
                 statusCode: res.statusCode,
                 runInfo,
             });
@@ -403,9 +450,6 @@ const server = http.createServer((req, res) => {
             },
             runInfo: getRunInfo({
                 method: req?.method,
-                url,
-                urlPath,
-                urlParams,
             }),
         });
 
