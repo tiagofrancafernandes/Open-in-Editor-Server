@@ -452,12 +452,9 @@ const server = http.createServer((req, res) => {
         const editor = urlParams.get('editor') || null;
         openCmd = urlParams.get('open_cmd') || getOpenCmd(profileData);
         const file = urlParams.get('file') || urlParams.get('goTo') || urlParams.get('go_to');
-        dryRunMode = ['on', 'true', '1', 'yes'].includes(
-            urlParams.get('dry_run') || urlParams.get('dryRun') || urlParams.get('dryRunMode')
-        );
 
         if (['on', 'true', '1', 'yes'].includes(urlParams.get('open'))) {
-            dryRunMode = true;
+            dryRunMode = false;
         }
 
         if (['off', 'false', '0', 'no'].includes(urlParams.get('open'))) {
@@ -468,6 +465,10 @@ const server = http.createServer((req, res) => {
             dryRunMode = true;
         }
 
+        dryRunMode = ['on', 'true', '1', 'yes'].includes(
+            urlParams.get('dry_run') || urlParams.get('dryRun') || urlParams.get('dryRunMode')
+        );
+
         const projectRoot = String(urlParams.get('project_root') || '').trim() || null;
 
         const appBasePathRemoteMap = callFn(
@@ -477,13 +478,11 @@ const server = http.createServer((req, res) => {
                 let profileMapPaths = ifObjectOr(profileData?.mapPaths, {});
                 let mapSplitStr = ifStringOr(ifObjectOr(profileData?.options)?.remapSplitStr, null) || REMAP_SPLIT_STR;
 
-                if (
-                    ifStringOr(profileMapPaths?.local, null)?.trim() &&
-                    ifStringOr(profileMapPaths?.remote, null)?.trim()
-                ) {
+                if (ifStringOr(profileMapPaths?.local, null)?.trim()) {
                     return {
-                        local: profileMapPaths?.local,
-                        remote: profileMapPaths?.remote,
+                        local: ifStringOr(profileMapPaths?.local, null)?.trim(),
+                        remote: ifStringOr(profileMapPaths?.remote, null)?.trim(),
+                        val: 1,
                     };
                 }
 
@@ -491,6 +490,7 @@ const server = http.createServer((req, res) => {
                     return {
                         local: ifStringOr(profileMapPaths?.local, null)?.trim(),
                         remote: ifStringOr(profileMapPaths?.remote, null)?.trim(),
+                        val: 2,
                     };
                 }
 
@@ -502,6 +502,7 @@ const server = http.createServer((req, res) => {
                 return {
                     local: String(local || '')?.replace(/^(\/){2,}/g, ''),
                     remote: String(remote || '')?.replace(/^(\/){2,}/g, ''),
+                    val: 3,
                 };
             },
             [urlParams.get('app_base_path_remote_map') || APP_BASE_PATH_REMOTE_MAP || null]
@@ -527,7 +528,7 @@ const server = http.createServer((req, res) => {
                 .map((v) => v.replace(/(\/){1,}$/g, ''))
                 .join('/');
 
-            if (appBasePathRemoteMap?.remote && appBasePathRemoteMap?.local) {
+            if (appBasePathRemoteMap?.local?.trim() && (appBasePathRemoteMap?.local?.trim() !== '/')) {
                 value = value.replace(appBasePathRemoteMap?.remote || '', appBasePathRemoteMap?.local || '');
             }
 

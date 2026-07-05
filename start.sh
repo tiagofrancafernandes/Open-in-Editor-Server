@@ -27,6 +27,10 @@
 
 set -e  # Exit on error
 
+__DIR__=$(dirname $(readlink -f $0));
+
+cd $__DIR__
+
 CONFIG_FILE="ecosystem.config.cjs"
 
 # Valida existência do arquivo de configuração
